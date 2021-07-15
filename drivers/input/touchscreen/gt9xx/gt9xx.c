@@ -27,8 +27,10 @@
 #define GOODIX_COORDS_ARR_SIZE	4
 #define PROP_NAME_SIZE		24
 #define I2C_MAX_TRANSFER_SIZE   255
+#ifdef GTP_PEN_ENABLED
 #define GTP_PEN_BUTTON1		BTN_STYLUS
 #define GTP_PEN_BUTTON2		BTN_STYLUS2
+#endif
 
 static const char *goodix_ts_name = "goodix-ts";
 static const char *goodix_input_phys = "input/ts";
@@ -444,12 +446,16 @@ static void gtp_type_a_report(struct goodix_ts_data *ts, u8 touch_num,
 		if (touch_num && i == points->id) {
 			input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, points->id);
 
+#ifdef GTP_PEN_ENABLED
 			if (points->tool_type == GTP_TOOL_PEN) {
 				input_report_key(ts->input_dev, BTN_TOOL_PEN, true);
 				pre_pen_id = points->id;
 			} else {
 				input_report_key(ts->input_dev, BTN_TOOL_FINGER, true);
 			}
+#else
+			input_report_key(ts->input_dev, BTN_TOOL_FINGER, true);
+#endif
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
 					 points->x);
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_Y,
@@ -463,6 +469,7 @@ static void gtp_type_a_report(struct goodix_ts_data *ts, u8 touch_num,
 			cur_touch |= 0x01 << points->id;
 			points++;
 		} else if (pre_touch & 0x01 << i) {
+#ifdef GTP_PEN_ENABLED
 			if (pre_pen_id == i) {
 				input_report_key(ts->input_dev, BTN_TOOL_PEN, false);
 				/* valid id will < 10, so id to 0xff to indicate a invalid state */
@@ -470,6 +477,9 @@ static void gtp_type_a_report(struct goodix_ts_data *ts, u8 touch_num,
 			} else {
 				input_report_key(ts->input_dev, BTN_TOOL_FINGER, false);
 			}
+#else
+				input_report_key(ts->input_dev, BTN_TOOL_FINGER, false);
+#endif
 		}
 	}
 
@@ -572,6 +582,7 @@ static void gtp_work_func(struct goodix_ts_data *ts)
 	}
 
 	/* touch key event */
+#ifdef GTP_PEN_ENABLED
 	if (key_value & 0xf0 || pre_key & 0xf0) {
 		/* pen button */
 		switch (key_value) {
@@ -597,6 +608,9 @@ static void gtp_work_func(struct goodix_ts_data *ts)
 		input_sync(ts->input_dev);
 		pre_key = key_value;
 	} else if (key_value & 0x0f || pre_key & 0x0f) {
+#else
+	if (key_value & 0x0f || pre_key & 0x0f) {
+#endif
 		/* panel key */
 		for (i = 0; i < ts->pdata->key_nums; i++) {
 			if ((pre_key | key_value) & (0x01 << i))
@@ -1560,8 +1574,10 @@ static s8 gtp_request_input_dev(struct goodix_ts_data *ts)
 		dev_info(&ts->client->dev, "Use type A report protocol\n");
 	}
 
+#ifdef GTP_PEN_ENABLED
 	input_set_capability(ts->input_dev, EV_KEY, GTP_PEN_BUTTON1);
 	input_set_capability(ts->input_dev, EV_KEY, GTP_PEN_BUTTON2);
+#endif
 
 	/* touch key register */
 	for (index = 0; index < ts->pdata->key_nums; index++)
@@ -1588,7 +1604,9 @@ static s8 gtp_request_input_dev(struct goodix_ts_data *ts)
 		input_set_abs_params(ts->input_dev, ABS_MT_TOOL_TYPE,
 				     0, MT_TOOL_MAX, 0, 0);
 	} else {
+#ifdef GTP_PEN_ENABLED
 		__set_bit(BTN_TOOL_PEN, ts->input_dev->keybit);
+#endif
 		__set_bit(BTN_TOOL_FINGER, ts->input_dev->keybit);
 	}
 
