@@ -27,6 +27,7 @@
 #define GOODIX_COORDS_ARR_SIZE	4
 #define PROP_NAME_SIZE		24
 #define I2C_MAX_TRANSFER_SIZE   255
+#define INVERT_XY 1
 #ifdef GTP_PEN_ENABLED
 #define GTP_PEN_BUTTON1		BTN_STYLUS
 #define GTP_PEN_BUTTON2		BTN_STYLUS2
@@ -456,10 +457,17 @@ static void gtp_type_a_report(struct goodix_ts_data *ts, u8 touch_num,
 #else
 			input_report_key(ts->input_dev, BTN_TOOL_FINGER, true);
 #endif
+#ifdef INVERT_XY
+			input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
+					 ts->pdata->abs_size_x - points->x);
+			input_report_abs(ts->input_dev, ABS_MT_POSITION_Y,
+					 ts->pdata->abs_size_y - points->y);
+#else
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
 					 points->x);
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_Y,
 					 points->y);
+#endif
 			input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR,
 					 points->w);
 			input_report_abs(ts->input_dev, ABS_MT_PRESSURE,
@@ -511,10 +519,17 @@ static void gtp_mt_slot_report(struct goodix_ts_data *ts, u8 touch_num,
 				input_mt_report_slot_state(ts->input_dev,
 							   MT_TOOL_FINGER, true);
 			}
+#ifdef INVERT_XY
+			input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
+					 ts->pdata->abs_size_x - points->x);
+			input_report_abs(ts->input_dev, ABS_MT_POSITION_Y,
+					 ts->pdata->abs_size_y - points->y);
+#else
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
 					 points->x);
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_Y,
 					 points->y);
+#endif
 			input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR,
 					 points->w);
 			input_report_abs(ts->input_dev, ABS_MT_PRESSURE,
