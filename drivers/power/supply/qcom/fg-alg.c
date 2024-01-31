@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2018-2020 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2022, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #define pr_fmt(fmt)	"ALG: %s: " fmt, __func__
@@ -270,7 +271,7 @@ int get_cycle_counts(struct cycle_counter *counter, const char **buf)
 
 	counter->str_buf[len] = '\0';
 	*buf = counter->str_buf;
-	return 0;
+	return rc;
 }
 
 /**
@@ -890,7 +891,7 @@ int soh_profile_update(struct soh_profile *sp, int new_soh)
  * @sp: SOH profile object
  *
  * FG/QG have to call this after parsing battery profile node and multiple
- * profile load feature is enabled. SOH profile object should have atleast
+ * profile load feature is enabled. SOH profile object should have at least
  * the power supply of FG/QG and battery profile node. SOH specific range
  * data is allocated by this function.
  *
