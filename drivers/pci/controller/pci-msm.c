@@ -6398,7 +6398,7 @@ static int msm_pcie_probe(struct platform_device *pdev)
 		PCIE_DBG(pcie_dev, "RC%d: aux clock frequency: %d.\n",
 			pcie_dev->rc_idx, pcie_dev->aux_clk_freq);
 
-	of_property_read_u32(of_node, "qcom,clkreq-gpio",
+	of_property_read_u32(of_node, "qcom,gpio-clkreq",
 			&pcie_dev->clkreq_gpio);
 
 	PCIE_DBG(pcie_dev, "RC%d: clkreq gpio no:%u\n",
