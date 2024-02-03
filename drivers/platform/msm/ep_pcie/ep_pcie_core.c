@@ -69,7 +69,7 @@ static struct ep_pcie_vreg_info_t ep_pcie_vreg_info[EP_PCIE_MAX_VREG] = {
 static struct ep_pcie_gpio_info_t ep_pcie_gpio_info[EP_PCIE_MAX_GPIO] = {
 	{"perst-gpio",      0, 0, 0, 1},
 	{"wake-gpio",       0, 1, 0, 1},
-	{"clkreq-gpio",     0, 0, 0, 1},
+	{"gpio-clkreq",     0, 0, 0, 1},
 	{"mdm2apstatus-gpio",    0, 1, 1, 0},
 };
 
