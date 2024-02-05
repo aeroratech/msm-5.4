@@ -377,8 +377,8 @@ static void *usbpd_ipc_log;
 
 #define PD_MIN_SINK_CURRENT	900
 
-static const u32 default_src_caps[] = { 0x36019096 };	/* VSafe5V @ 1.5A */
-static const u32 default_snk_caps[] = { 0x2601912C };	/* VSafe5V @ 3A */
+static const u32 default_src_caps[] = { 0x36019064 };	/* VSafe5V @ 1.0A */
+static const u32 default_snk_caps[] = { 0x26019096 };	/* VSafe5V @ 1.5A */
 
 struct vdm_tx {
 	u32			data[PD_MAX_DATA_OBJ];

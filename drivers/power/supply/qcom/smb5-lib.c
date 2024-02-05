@@ -1503,6 +1503,27 @@ int smblib_set_icl_current(struct smb_charger *chg, int icl_ua)
 	if (icl_ua == INT_MAX)
 		goto set_mode;
 
+	/* Apply limits from device tree */
+	switch (chg->real_charger_type) {
+	case POWER_SUPPLY_TYPE_USB:		/* Standard Downstream Port */
+	case POWER_SUPPLY_TYPE_USB_DCP:		/* Dedicated Charging Port */
+	case POWER_SUPPLY_TYPE_USB_CDP:		/* Charging Downstream Port */
+	case POWER_SUPPLY_TYPE_USB_PD:		/* Power Delivery Port */
+	case POWER_SUPPLY_TYPE_USB_PD_DRP:	/* PD Dual Role Port */
+		if (chg->dcp_icl_ua > 0)
+			icl_ua = min_t(int, icl_ua, chg->dcp_icl_ua);
+		pr_debug("PD & BC1.2 icl = %d mA\n", icl_ua / 1000);
+		break;
+	case QTI_POWER_SUPPLY_TYPE_USB_HVDCP:	/* High Voltage DCP */
+	case QTI_POWER_SUPPLY_TYPE_USB_HVDCP_3:	/* Efficient High Voltage DCP */
+	case QTI_POWER_SUPPLY_TYPE_USB_HVDCP_3P5:	/* Efficient High Voltage DCP */
+		icl_ua = min_t(int, icl_ua, chg->chg_param.hvdcp3_max_icl_ua);
+		pr_debug("HVDCP3 icl = %d mA\n", icl_ua / 1000);
+		break;
+	default:
+		pr_warn("unsupported type %d\n", chg->real_charger_type);
+	};
+
 	/* configure current */
 	if (chg->real_charger_type == POWER_SUPPLY_TYPE_USB
 		&& (chg->typec_legacy
