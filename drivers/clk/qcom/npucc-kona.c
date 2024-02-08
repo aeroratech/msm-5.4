@@ -1166,18 +1166,21 @@ static const struct qcom_cc_desc npu_cc_kona_desc = {
 	.num_clks = ARRAY_SIZE(npu_cc_kona_clocks),
 	.resets = npu_cc_kona_resets,
 	.num_resets = ARRAY_SIZE(npu_cc_kona_resets),
+	.start_index = NPU_CC_ATB_CLK,
 };
 
 static const struct qcom_cc_desc npu_qdsp6ss_kona_desc = {
 	.config = &npu_qdsp6ss_kona_regmap_config,
 	.clks = npu_qdsp6ss_kona_clocks,
 	.num_clks = ARRAY_SIZE(npu_qdsp6ss_kona_clocks),
+	.start_index = NPU_DSP_CORE_CLK_SRC,
 };
 
 static const struct qcom_cc_desc npu_qdsp6ss_pll_kona_desc = {
 	.config = &npu_qdsp6ss_pll_kona_regmap_config,
 	.clks = npu_qdsp6ss_pll_kona_clocks,
 	.num_clks = ARRAY_SIZE(npu_qdsp6ss_pll_kona_clocks),
+	.start_index = NPU_Q6SS_PLL,
 };
 
 static const struct of_device_id npu_cc_kona_match_table[] = {
@@ -1277,9 +1280,9 @@ static int npu_cc_kona_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	ret = npu_clocks_kona_probe(pdev, &npu_cc_kona_desc);
+	ret = npu_clocks_kona_probe(pdev, &npu_qdsp6ss_pll_kona_desc);
 	if (ret < 0) {
-		dev_err(&pdev->dev, "npu_cc clock registration failed, ret=%d\n",
+		dev_err(&pdev->dev, "npu_qdsp6ss_pll clock registration failed, ret=%d\n",
 			ret);
 		return ret;
 	}
@@ -1291,9 +1294,9 @@ static int npu_cc_kona_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	ret = npu_clocks_kona_probe(pdev, &npu_qdsp6ss_pll_kona_desc);
+	ret = npu_clocks_kona_probe(pdev, &npu_cc_kona_desc);
 	if (ret < 0) {
-		dev_err(&pdev->dev, "npu_qdsp6ss_pll clock registration failed, ret=%d\n",
+		dev_err(&pdev->dev, "npu_cc clock registration failed, ret=%d\n",
 			ret);
 		return ret;
 	}
