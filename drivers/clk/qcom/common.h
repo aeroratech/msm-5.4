@@ -46,6 +46,7 @@ struct qcom_cc_desc {
 	struct clk_vdd_class **clk_regulators;
 	size_t num_clk_regulators;
 	struct icc_path *path;
+	u32 start_index;
 };
 
 /**

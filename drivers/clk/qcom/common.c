@@ -32,6 +32,7 @@ struct qcom_cc {
 	size_t num_rclks;
 	struct clk_hw **clk_hws;
 	size_t num_clk_hws;
+	u32 rclks_start_index;
 };
 
 const
@@ -285,12 +286,12 @@ static struct clk_hw *qcom_cc_clk_hw_get(struct of_phandle_args *clkspec,
 	if (idx < cc->num_clk_hws && cc->clk_hws[idx])
 		return cc->clk_hws[idx];
 
-	if (idx >= cc->num_rclks) {
-		pr_err("%s: invalid index %u\n", __func__, idx);
-		return ERR_PTR(-EINVAL);
-	}
+	if (idx >= cc->rclks_start_index && idx < cc->num_rclks)
+		return cc->rclks[idx] ? &cc->rclks[idx]->hw : NULL;
 
-	return cc->rclks[idx] ? &cc->rclks[idx]->hw : NULL;
+	else if (idx < cc->rclks_start_index && idx >= cc->num_rclks)
+		pr_err("%s: invalid index %u\n", __func__, idx);
+	return ERR_PTR(-EINVAL);
 }
 
 int qcom_cc_really_probe(struct platform_device *pdev,
@@ -354,6 +355,8 @@ int qcom_cc_really_probe(struct platform_device *pdev,
 	cc->num_rclks = num_clks;
 	cc->clk_hws = clk_hws;
 	cc->num_clk_hws = num_clk_hws;
+	if (desc->start_index)
+		cc->rclks_start_index = desc->start_index;
 
 	qcom_cc_drop_protected(dev, cc);
 	qcom_cc_set_critical(dev, cc);
