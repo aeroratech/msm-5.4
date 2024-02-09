@@ -2184,6 +2184,8 @@ static bool reg_wdev_chan_valid(struct wiphy *wiphy, struct wireless_dev *wdev)
 	case NL80211_IFTYPE_P2P_DEVICE:
 		/* no enforcement required */
 		break;
+	case NL80211_IFTYPE_NAN:
+		goto wdev_inactive_unlock;
 	default:
 		/* others not implemented for now */
 		WARN_ON(1);
