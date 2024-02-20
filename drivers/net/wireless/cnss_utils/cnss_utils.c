@@ -47,6 +47,38 @@ static struct cnss_utils_priv {
 	struct dentry *root_dentry;
 } *cnss_utils_priv;
 
+static char cnss_macAddr[ETH_ALEN*3];
+module_param_string(mac, cnss_macAddr, ETH_ALEN*3, 0);
+MODULE_PARM_DESC(mac, "WLAN MAC address");
+
+static void cnss_wlan_init_mac(void)
+{
+	int i, j;
+	short byte1, byte0;
+	u8 temp[ETH_ALEN];
+
+	if (!cnss_utils_priv)
+		return;
+
+	if (strlen(cnss_macAddr) < ETH_ALEN*3-1)
+		return;
+
+	for (i = 0, j = 0; i < ETH_ALEN; i++, j += 3) {
+		byte1 = hex_to_bin(*(cnss_macAddr + j));
+		if (byte1 < 0)
+			return;
+
+		byte0 = hex_to_bin(*(cnss_macAddr + j + 1));
+		if (byte0 < 0)
+			return;
+
+		temp[i] = (char)(byte1*16 + byte0);
+	}
+
+	if (cnss_utils_set_wlan_mac_address(temp, ETH_ALEN))
+		pr_err("Failed to set MAC address %s\n", cnss_macAddr);
+}
+
 int cnss_utils_set_wlan_unsafe_channel(struct device *dev,
 				       u16 *unsafe_ch_list, u16 ch_count)
 {
@@ -460,7 +492,7 @@ static int __init cnss_utils_init(void)
 	cnss_utils_debugfs_create(priv);
 #endif
 	cnss_utils_priv = priv;
-
+	cnss_wlan_init_mac();
 	return 0;
 }
 
