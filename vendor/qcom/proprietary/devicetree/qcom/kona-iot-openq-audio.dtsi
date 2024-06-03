@@ -1,0 +1,98 @@
+#include "kona-audio-overlay.dtsi"
+
+/ {
+	aliases {
+		swr0 = &swr0;
+		swr1 = &swr1;
+		swr2 = &swr2;
+	};
+};
+
+&spkr_1_sd_n_sleep {
+	mux {
+		pins = "gpio127";
+	};
+
+	config {
+		pins = "gpio127";
+	};
+};
+
+&spkr_1_sd_n_active {
+	mux {
+		pins = "gpio127";
+	};
+
+	config {
+		pins = "gpio127";
+	};
+};
+
+&spkr_2_sd_n_sleep {
+	mux {
+		pins = "gpio128";
+	};
+
+	config {
+		pins = "gpio128";
+	};
+};
+
+&spkr_2_sd_n_active {
+	mux {
+		pins = "gpio128";
+	};
+
+	config {
+		pins = "gpio128";
+	};
+};
+
+
+
+&kona_snd {
+	qcom,model = "kona-iot-snd-card";
+	qcom,audio-routing =
+		"AMIC1", "Analog Mic1",
+		"Analog Mic1", "MIC BIAS1",
+		"AMIC2", "Analog Mic2",
+		"Analog Mic2", "MIC BIAS2",
+		"AMIC6", "Analog Mic3",
+		"Analog Mic3", "MIC BIAS3",
+		"AMIC7", "Analog Mic4",
+		"Analog Mic4", "MIC BIAS4",
+		"DMIC3", "Digital Mic3",
+		"Digital Mic3", "MIC BIAS3",
+		"DMIC4", "Digital Mic4",
+		"Digital Mic4", "MIC BIAS3",
+		"DMIC5", "Digital Mic5",
+		"Digital Mic5", "MIC BIAS3",
+		"TX SWR_ADC0", "WCD_TX_OUTPUT",
+		"TX SWR_ADC1", "WCD_TX_OUTPUT",
+		"TX SWR_ADC2", "WCD_TX_OUTPUT",
+		"TX SWR_ADC3", "WCD_TX_OUTPUT",
+		"TX SWR_DMIC0", "WCD_TX_OUTPUT",
+		"TX SWR_DMIC1", "WCD_TX_OUTPUT",
+		"TX SWR_DMIC2", "WCD_TX_OUTPUT",
+		"TX SWR_DMIC3", "WCD_TX_OUTPUT",
+		"TX SWR_DMIC4", "WCD_TX_OUTPUT",
+		"TX SWR_DMIC5", "WCD_TX_OUTPUT",
+		"TX SWR_DMIC6", "WCD_TX_OUTPUT",
+		"TX SWR_DMIC7", "WCD_TX_OUTPUT",
+		"IN1_HPHL", "HPHL_OUT",
+		"IN2_HPHR", "HPHR_OUT",
+		"IN3_AUX", "AUX_OUT",
+		"WSA SRC0_INP", "SRC0",
+		"WSA_TX DEC0_INP", "TX DEC0 MUX",
+		"WSA_TX DEC1_INP", "TX DEC1 MUX",
+		"RX_TX DEC0_INP", "TX DEC0 MUX",
+		"RX_TX DEC1_INP", "TX DEC1 MUX",
+		"RX_TX DEC2_INP", "TX DEC2 MUX",
+		"RX_TX DEC3_INP", "TX DEC3 MUX";
+	qcom,msm-mbhc-usbc-audio-supported = <0>;
+	qcom,msm-mbhc-hphl-swh = <0>;
+	qcom,msm-mbhc-gnd-swh = <0>;
+	asoc-codec  = <&wcd938x_codec>, <&stub_codec>, <&bolero>, <&ext_disp_audio_codec>;
+	asoc-codec-names = "wcd938x_codec", "msm-stub-codec.1", "bolero_codec", "msm-ext-disp-audio-codec-rx";
+	qcom,wsa-max-devs = <0>;
+};

@@ -1,0 +1,56 @@
+The SMI230 is a highly integrated, low power inertial measurement unit (IMU)
+that provides precise acceleration and angular rate (gyroscopic) measurement.
+
+To enable driver probing, add the smi230_gyro and smi230_acc node to the platform
+device tree as described below.
+
+Required properties:
+
+- compatible: "SMI230ACC", "SMI230GYRO"
+- reg: the I2C address or SPI chip select the device will respond to
+- interrupt-parent: phandle to the parent interrupt controller as documented in [interrupts][4]
+- interrupts: interrupt mapping for IRQ as documented in [interrupts][4]
+
+Recommended properties for SPI bus usage:
+- spi-max-frequency: maximum SPI bus frequency as documented in [SPI][3]
+
+Optional properties:
+- smi230_gyro,gpio_irq: MEMS sensor interrupt line to use (default 1)
+
+I2C example (based on Raspberry PI 3):
+
+        &i2c0 {
+                status = "ok";
+                #address-cells = <0x1>;
+                #size-cells = <0x0>;
+                smi230_gyro@68 {
+                        compatible = "SMI230GYRO";
+                        reg = <0x68>;
+                        interrupt-parent = <&gpio>;
+                        interrupts = <26 IRQ_TYPE_EDGE_RISING>;
+                };
+                smi230_acc@18 {
+                        compatible = "SMI230ACC";
+                        reg = <0x18>;
+                        interrupt-parent = <&gpio>;
+                        interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+                };
+
+SPI example (based on Raspberry PI 3):
+
+        &spi0 {
+                status = "ok";
+                #address-cells = <0x1>;
+                #size-cells = <0x0>;
+                smi230_gyro@68 {
+                        compatible = "SMI230GYRO";
+                        reg = <0x68>;
+                        interrupt-parent = <&gpio>;
+                        interrupts = <26 IRQ_TYPE_EDGE_RISING>;
+                };
+                smi230_acc@18 {
+                        compatible = "SMI230ACC";
+                        reg = <0x18>;
+                        interrupt-parent = <&gpio>;
+                        interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+                };

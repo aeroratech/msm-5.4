@@ -1,0 +1,24 @@
+Qualcomm Technologies, Inc. SDXPOORWILLS Network-On-Chip interconnect driver binding
+--------------------------------------------------------------------------------
+
+SDXPOORWILLS interconnect providers support system bandwidth requirements through
+RPMh hardware accelerators known as Bus Clock Manager (BCM). The provider is
+able to communicate with the BCM through the Resource State Coordinator (RSC)
+associated with each execution environment. Provider nodes must point to at
+least one RPMh device child node pertaining to their RSC and each provider
+can map to multiple RPMh resources.
+
+Required properties :
+- compatible : shall contain only one of the following:
+			"qcom,sdxpoorwills-ipa_virt",
+			"qcom,sdxpoorwills-system_noc",
+			"qcom,sdxpoorwills-mem_noc",
+			"qcom,sdxpoorwills-mc_virt",
+- #interconnect-cells : should contain 1
+
+Examples:
+
+system_noc: interconnect@1620000 {
+	compatible = "qcom,sdxpoorwills-system_noc";
+	interconnect-cells = <1>;
+};
