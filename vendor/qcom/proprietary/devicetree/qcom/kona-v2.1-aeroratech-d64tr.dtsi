@@ -1,0 +1,375 @@
+#include "kona-qrd.dtsi"
+#include "kona-iot-openq-audio.dtsi"
+#include "camera/kona-camera-sensor-openq.dtsi"
+
+&tlmm {
+        usb1_vbus_boost {
+                usb1_vbus_boost_default: usb1_vbus_boost_default {
+                        mux {
+                                pins = "gpio26";
+                                function = "gpio";
+                        };
+
+                        config {
+                                pins = "gpio26";
+                                output-high;
+                        };
+                };
+        };
+};
+
+//// Debug UART
+&qupv3_se12_2uart {
+	status = "okay";
+};
+
+//// Gimbal UART
+&qupv3_se18_2uart {
+	status = "okay";
+};
+
+////
+&qupv3_se1_i2c {
+	status = "okay";
+};
+
+//// Bluetooth UART
+&qupv3_se6_4uart {
+	status = "ok";
+};
+
+////
+&qupv3_se13_4uart {
+	status = "disabled";
+};
+
+&qupv3_se13_i2c {
+	status = "disabled";
+};
+
+&vendor {
+        openq_batterydata: qcom,battery-data {
+                qcom,batt-id-range-pct = <15>;
+                #include "fg-gen4-batterydata-powerizer-3350mah.dtsi"
+        };
+
+        extcon_usb1: extcon_usb1 {
+                compatible = "linux,extcon-usb-gpio";
+                id-gpio = <&tlmm 91 GPIO_ACTIVE_HIGH>;
+                vbus-out-gpio = <&tlmm 26 GPIO_ACTIVE_HIGH>;
+
+                pinctrl-names = "default";
+                pinctrl-0 = <&usb2_id_det_default
+                                &usb1_vbus_boost_default>;
+        };
+};
+
+&usb1 {
+        extcon = <&extcon_usb1>;
+	/delete-property/ qcom,default-mode-none;
+	dwc3@a800000 {
+		dr_mode = "host";
+	};
+};
+
+&smb1390 {
+	status = "disabled";
+};
+
+&smb1390_slave {
+	status = "disabled";
+};
+
+&smb1390_slave_charger {
+	status = "disabled";
+};
+
+&pm8150l_gpios {
+	pwr_src_det_gpio04 {
+		gpio_power_src_det: gpio_power_src_det {
+			pins = "gpio4";
+			function = "normal";
+			bias-pull-up;
+		};
+	};
+};
+
+&pm8150b_charger {
+	qcom,sec-charger-config = <0>; /* no secondary charger */
+	qcom,battery-data = <&openq_batterydata>;
+	/delete-property/ qcom,fcc-stepping-enable;
+	/delete-property/ qcom,batteryless-platform;
+	qcom,usb-icl-ua = <1500000>;
+	qcom,hvdcp3-max-icl-ua = <1500000>;
+	qcom,hvdcp2-max-icl-ua = <1500000>;
+	qcom,fcc-max-ua = <1500000>;
+	qcom,fv-max-uv = <4330000>;
+	qcom,chg-term-src = <1>; // ADC comparator
+	qcom,chg-term-current-ma = <200>; // upper threshold
+	qcom,chg-term-base-current-ma = <100>; // lower threshold
+	qcom,hold-soc-while-full;
+	qcom,soc-scale-mode-en;
+	qcom,lpd-disable;
+	#io-channel-cells = <1>;
+	io-channels = <&pm8150b_fg PSY_IIO_DEBUG_BATTERY>,
+		      <&pm8150b_fg PSY_IIO_CAPACITY>,
+		      <&pm8150b_fg PSY_IIO_REAL_CAPACITY>,
+		      <&pm8150b_fg PSY_IIO_CC_SOC>,
+		      <&pm8150b_fg PSY_IIO_CURRENT_NOW>,
+		      <&pm8150b_fg PSY_IIO_VOLTAGE_NOW>,
+		      <&pm8150b_fg PSY_IIO_VOLTAGE_MAX>,
+		      <&pm8150b_fg PSY_IIO_CHARGE_FULL>,
+		      <&pm8150b_fg PSY_IIO_RESISTANCE_ID>,
+		      <&pm8150b_fg PSY_IIO_TEMP>,
+		      <&pm8150b_fg PSY_IIO_CHARGE_COUNTER>,
+		      <&pm8150b_fg PSY_IIO_CYCLE_COUNT>,
+		      <&pm8150b_fg PSY_IIO_CHARGE_FULL_DESIGN>,
+		      <&pm8150b_fg PSY_IIO_TIME_TO_FULL_NOW>,
+		      <&pm8150b_vadc ADC5_USB_IN_V_16>,
+		      <&pm8150b_vadc ADC5_USB_IN_I>,
+		      <&pm8150b_vadc ADC5_SBUx>,
+		      <&pm8150b_vadc ADC5_VPH_PWR>,
+		      <&pm8150b_vadc ADC5_DIE_TEMP>,
+		      <&pm8150b_vadc ADC5_MID_CHG_DIV6>,
+		      <&pm8150b_vadc ADC5_CHG_TEMP>;
+	io-channel-names ="debug_battery",
+			   "capacity",
+			   "real_capacity",
+			   "cc_soc",
+			   "current_now",
+			   "voltage_now",
+			   "voltage_max",
+			   "charge_full",
+			   "resistance_id",
+			   "temp",
+			   "charge_counter",
+			   "cycle_count",
+			   "charge_full_design",
+			   "time_to_full_now",
+			   "usb_in_voltage",
+			   "usb_in_current",
+			   "sbux_res",
+			   "vph_voltage",
+			   "die_temp",
+			   "mid_voltage",
+			   "chg_temp";
+};
+
+&pm8150b_fg {
+	qcom,battery-data = <&openq_batterydata>;
+	/delete-property/ qcom,five-pin-battery;
+	qcom,pwr-src-det-gpio = <&pm8150l_gpios 4 0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&gpio_power_src_det>;
+	#io-channel-cells = <1>;
+	io-channels = <&pm8150b_charger PSY_IIO_RECHARGE_SOC>,
+		<&pm8150b_charger PSY_IIO_CHARGE_DONE>,
+		<&pm8150b_charger PSY_IIO_CHARGE_QNOVO_ENABLE>,
+		<&pm8150b_charger PSY_IIO_PARALLEL_DISABLE>;
+	io-channel-names = "recharge_soc",
+			"charge_done",
+			"charge_qnovo_enable",
+			"parallel_charging_enabled";
+};
+
+&soc {
+	clk40M: can_clock {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <40000000>;
+	};
+
+	ax88179_enable {
+		compatible = "qcom,rb5_gpios_enable";
+		qcom,enable-gpio = <&tlmm 75 0>;
+		status = "ok";
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		boot_status {
+			gpios = <&tlmm 15 0>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+};
+
+&usb0 {
+	qcom,charging-disabled;
+};
+
+&usb2_phy0 {
+	qcom,param-override-seq = <0x43 0x70>;
+};
+
+&pcie0 {
+	/delete-property/ qcom,clkreq-gpio;
+	qcom,gpio-clkreq = <80>;
+};
+
+&pcie1 {
+	status = "disabled";
+};
+
+&pcie2 {
+	qcom,boot-option = <0x0>;
+};
+
+&mhi_0_iommu_group {
+	qcom,iommu-dma = "bypass";
+};
+
+&thermal_zones {
+	/delete-node/ modem-lte-sub6-pa1;
+	/delete-node/ modem-lte-sub6-pa2;
+	/delete-node/ modem-mmw0-usr;
+	/delete-node/ modem-mmw1-usr;
+	/delete-node/ modem-mmw2-usr;
+	/delete-node/ modem-mmw3-usr;
+	/delete-node/ modem-skin-usr;
+	/delete-node/ modem-wifi-usr;
+	/delete-node/ modem-ambient-usr;
+	/delete-node/ modem-0-usr;
+	/delete-node/ modem-1-usr;
+	/delete-node/ modem-streamer-usr;
+	/delete-node/ modem-mmw0-mod-usr;
+	/delete-node/ modem-mmw1-mod-usr;
+	/delete-node/ modem-mmw2-mod-usr;
+	/delete-node/ modem-mmw3-mod-usr;
+
+	/delete-node/ skin-therm-usr;
+	/delete-node/ skin-therm-step;
+	/delete-node/ camera-therm-usr;
+
+	/delete-node/ mmw-pa1-usr;
+	/delete-node/ mmw-pa1-step;
+	/delete-node/ mmw-pa2-usr;
+	/delete-node/ mmw-pa2-step;
+	/delete-node/ xo-therm-step;
+	/delete-node/ xo-therm-usr;
+	/delete-node/ skin-msm-therm-step;
+
+	pm8250-wifi-usr {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "user_space";
+		thermal-sensors = <&pm8150_adc_tm ADC5_AMUX_THM2_100K_PU>;
+		wake-capable-sensor;
+		trips {
+			active-config0 {
+				temperature = <52000>;
+				hysteresis = <4000>;
+				type = "passive";
+			};
+		};
+	};
+
+	pm8150l-therm-usr {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "user_space";
+		thermal-sensors = <&pm8150l_adc_tm ADC5_AMUX_THM3_100K_PU>;
+		wake-capable-sensor;
+		trips {
+			active-config0 {
+				temperature = <50000>;
+				hysteresis = <4000>;
+				type = "passive";
+			};
+		};
+	};
+
+	pm8250-xo-therm-usr {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "user_space";
+		thermal-sensors = <&pm8150_adc_tm ADC5_XO_THERM_100K_PU>;
+		wake-capable-sensor;
+		trips {
+			active-config0 {
+				temperature = <50000>;
+				hysteresis = <4000>;
+				type = "passive";
+			};
+		};
+	};
+
+	pm8150l-skin-step {
+		polling-delay-passive = <0>;
+		polling-delay = <0>;
+		thermal-governor = "step_wise";
+		thermal-sensors = <&pm8150l_adc_tm ADC5_AMUX_THM2_100K_PU>;
+		wake-capable-sensor;
+		trips {
+			skin_trip: skin-config0 {
+				temperature = <50000>;
+				hysteresis = <48000>;
+				type = "passive";
+			};
+		};
+
+		cooling-maps {
+			lcd_cdev {
+				trip = <&skin_trip>;
+				cooling-device = <&mdss_mdp 153 153>;
+			};
+		};
+	};
+};
+
+&sde_wb {
+	status = "disabled";
+};
+
+&redriver {
+        status = "disabled";
+};
+
+&sde_dp {
+	status = "ok";
+};
+
+&mdss_mdp {
+	connectors = <&sde_dp &smmu_sde_unsec &sde_rscc>;
+};
+
+&mdss_dsi_phy0 {
+	/delete-property/ qcom,dsi-pll-ssc-en;
+};
+
+&mdss_dsi_phy1 {
+	/delete-property/ qcom,dsi-pll-ssc-en;
+};
+
+&display_panel_avdd {
+	status = "disabled";
+};
+
+&ab_vreg {
+	status = "disabled";
+};
+
+&ibb_vreg {
+	status = "disabled";
+};
+
+&q6core {
+	cdc_tert_mi2s_gpios: msm_cdc_pinctrl_tert {
+		compatible = "qcom,msm-cdc-pinctrl";
+		pinctrl-names = "aud_active", "aud_sleep";
+		pinctrl-0 = <&tert_aux_pcm_clk_active &tert_aux_pcm_ws_active
+			&tert_aux_pcm_din_active>;
+		pinctrl-1 = <&tert_aux_pcm_clk_sleep &tert_aux_pcm_ws_sleep
+			&tert_aux_pcm_din_sleep>;
+		#gpio-cells = <0>;
+	};
+};
+
+&kona_snd {
+	/delete-property/ qcom,quat-mi2s-gpios;
+	qcom,tert-mi2s-gpios = <&cdc_tert_mi2s_gpios>;
+};
+
+&sdhc_2 {
+	cd-gpios = <&tlmm 77 GPIO_ACTIVE_HIGH>;
+};

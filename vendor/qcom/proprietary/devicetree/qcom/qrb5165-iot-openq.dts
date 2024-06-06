@@ -1,10 +1,11 @@
 /dts-v1/;
 
 #include "qrb5165.dtsi"
-#include "kona-v2.1-iot-openq.dtsi"
+//#include "kona-v2.1-iot-openq.dtsi"
+#include "kona-v2.1-aeroratech-d64tr.dtsi"
 
 / {
-	model = "Lantronix, Inc. qrb5165 IOT Open-Q";
+	model = "Aerora Technology Co.Ltd. D64TR";
 	compatible = "qcom,kona-iot", "qcom,kona", "qcom,iot";
 	qcom,board-id = <0x01010b 3>;
 };
