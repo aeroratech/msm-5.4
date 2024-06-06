@@ -648,4 +648,12 @@ config RANDOM_TRUST_BOOTLOADER
 	  believe its RNG facilities may be faulty. This may also be configured
 	  at boot time with "random.trust_bootloader=on/off".
 
+config RB5_GPIOS_ENABLE
+	tristate "Enable RB5 GPIO 140/145,116/117"
+	help
+	  The driver for enable QRB5165 GPIO 140/145,116/117.
+	  The pins are shared between Kona GPIOs and QCA concurrency
+	  signals, GPIO 60 is default set to low to connect GPIOs
+	  140/145,116/117 to mezzanine connectors.
+
 endmenu
