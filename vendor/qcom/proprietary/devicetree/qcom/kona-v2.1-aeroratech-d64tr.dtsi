@@ -16,6 +16,74 @@
                         };
                 };
         };
+
+	lt6161_pins {
+		lt6161_intr: lt6161_intr {
+			mux {
+				pins = "gpio1";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio1";
+				drive-strength = <8>;
+				bias-disable = <0>;
+			};
+		};
+	};
+};
+
+//// TODO:
+//// 1. Disable Display Support in XBL
+//// 2. Replace the name and default to dsi_to_hdmi_bridge_it6161 in XBL
+&mdss_mdp {
+	//// dsi_to_hdmi_bridge_it6161: qcom,mdss_dsi_to_hdmi_bridge_it6161 {
+	dsi_ili9806e_fwvga_video: qcom,mdss_dsi_ili9806e_fwvga_video {
+		qcom,mdss-dsi-panel-name = "ext video mode dsi bridge";
+		qcom,mdss-dsi-panel-type = "dsi_video_mode";
+
+		qcom,dsi-ctrl-num = <0>;
+		qcom,dsi-phy-num = <0>;
+		qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
+
+		qcom,mdss-dsi-virtual-channel-id = <0>;
+		qcom,mdss-dsi-stream = <0>;
+		qcom,mdss-dsi-bpp = <24>;
+		qcom,mdss-dsi-border-color = <0>;
+		qcom,mdss-dsi-traffic-mode = "non_burst_sync_pulse";
+		qcom,mdss-dsi-bllp-eof-power-mode;
+		qcom,mdss-dsi-bllp-power-mode;
+		qcom,mdss-dsi-lane-0-state;
+		qcom,mdss-dsi-lane-1-state;
+		qcom,mdss-dsi-lane-2-state;
+		qcom,mdss-dsi-lane-3-state;
+		qcom,mdss-dsi-dma-trigger = "trigger_sw";
+		qcom,mdss-dsi-mdp-trigger = "none";
+		qcom,mdss-dsi-t-clk-post = <0x0a>;
+		qcom,mdss-dsi-t-clk-pre = <0x21>;
+		qcom,mdss-dsi-force-clock-lane-hs;
+		qcom,mdss-dsi-ext-bridge-mode;
+
+		qcom,mdss-dsi-display-timings {
+			timing@0 {
+				qcom,mdss-dsi-panel-width = <1920>;
+				qcom,mdss-dsi-panel-height = <1080>;
+				qcom,mdss-dsi-h-front-porch = <88>;
+				qcom,mdss-dsi-h-back-porch = <148>;
+				qcom,mdss-dsi-h-pulse-width = <44>;
+				qcom,mdss-dsi-h-sync-skew = <0>;
+				qcom,mdss-dsi-v-back-porch = <36>;
+				qcom,mdss-dsi-v-front-porch = <4>;
+				qcom,mdss-dsi-v-pulse-width = <5>;
+				qcom,mdss-dsi-h-sync-pulse = <0>;
+				qcom,mdss-dsi-panel-framerate = <60>;
+				qcom,display-topology = <1 0 1>;
+				qcom,default-topology-index = <0>;
+				qcom,mdss-dsi-panel-phy-timings = [00 1e 08 07 24 22 08
+					08 05 02 04 00 19 17];
+			};
+		};
+	};
 };
 
 //// Debug UART
@@ -44,7 +112,32 @@
 };
 
 &qupv3_se13_i2c {
-	status = "disabled";
+	status = "ok";
+
+	lt6161: ite,it6161@6c {
+		compatible = "ite,it6161";
+		reg = <0x6c>;
+		it6161-addr-hdmi-tx = <0x4C>;
+		it6161-addr-cec = <0x4E>;
+
+		interrupt-parent = <&tlmm>;
+		interrupts = <1 0>;
+		interrupt-names = "lt6161_irq";
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&lt6161_intr>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				lt6161_in: endpoint {
+ 					remote-endpoint = <&ext_dsi_0_out>;
+				};
+			};
+		};
+	};
 };
 
 &vendor {
@@ -182,6 +275,12 @@
 	ax88179_enable {
 		compatible = "qcom,rb5_gpios_enable";
 		qcom,enable-gpio = <&tlmm 75 0>;
+		status = "ok";
+	};
+
+	it6161_enable {
+		compatible = "qcom,rb5_gpios_enable";
+		qcom,enable-gpio = <&tlmm 67 0>;
 		status = "ok";
 	};
 
@@ -326,11 +425,11 @@
 };
 
 &sde_dp {
-	status = "ok";
+	status = "disabled";
 };
 
 &mdss_mdp {
-	connectors = <&sde_dp &smmu_sde_unsec &sde_rscc>;
+	connectors = <&smmu_sde_unsec &sde_dsi &sde_rscc>;
 };
 
 &mdss_dsi_phy0 {
@@ -339,6 +438,22 @@
 
 &mdss_dsi_phy1 {
 	/delete-property/ qcom,dsi-pll-ssc-en;
+};
+
+&sde_dsi {
+	qcom,dsi-default-panel = <&dsi_ili9806e_fwvga_video>;
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			ext_dsi_0_out: endpoint {
+				remote-endpoint = <&lt6161_in>;
+			};
+		};
+	};
 };
 
 &display_panel_avdd {

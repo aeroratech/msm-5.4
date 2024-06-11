@@ -171,6 +171,15 @@ config DRM_LONTIUM_LT9611UXC
 	  This only need to uploade firmware and do not need add
 	  too much other configs when running.
 
+config DRM_ITE_IT6161
+	tristate "ITE IT6161 MIPI/HDMI bridge"
+	depends on OF
+	select DRM_KMS_HELPER
+	select REGMAP_I2C
+	select DRM_MIPI_DSI
+	help
+	  ITE IT6161 MIPI to HDMI bridge driver.
+
 source "drivers/gpu/drm/bridge/analogix/Kconfig"
 
 source "drivers/gpu/drm/bridge/adv7511/Kconfig"
