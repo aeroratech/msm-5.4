@@ -2,6 +2,13 @@
 #include "kona-iot-openq-audio.dtsi"
 #include "camera/kona-camera-sensor-openq.dtsi"
 
+/ {
+	aliases {
+		hsuart0 = &qupv3_se6_4uart;
+		hsuart1 = &qupv3_se18_2uart;
+	};
+};
+
 &tlmm {
         usb1_vbus_boost {
                 usb1_vbus_boost_default: usb1_vbus_boost_default {
