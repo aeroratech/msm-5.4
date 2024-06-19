@@ -162,6 +162,21 @@
                 pinctrl-0 = <&usb2_id_det_default
                                 &usb1_vbus_boost_default>;
         };
+
+	failsafe_bridge: failsafe-bridge {
+                compatible = "failsafe-bridge";
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				next_bridge: endpoint {
+					remote-endpoint = <&lt6161_in>;
+				};
+			};
+		};
+	};
 };
 
 &usb1 {
@@ -457,7 +472,7 @@
 		port@0 {
 			reg = <0>;
 			ext_dsi_0_out: endpoint {
-				remote-endpoint = <&lt6161_in>;
+				remote-endpoint = <&next_bridge>;
 			};
 		};
 	};

@@ -180,6 +180,14 @@ config DRM_ITE_IT6161
 	help
 	  ITE IT6161 MIPI to HDMI bridge driver.
 
+config DRM_FAILSAFE_BRIDGE
+	tristate "Failsafe bridge"
+	depends on OF
+	select DRM_KMS_HELPER
+	help
+	  Failsafe bridge to avoid DRM failure if external bridge
+	  is not available.
+
 source "drivers/gpu/drm/bridge/analogix/Kconfig"
 
 source "drivers/gpu/drm/bridge/adv7511/Kconfig"
