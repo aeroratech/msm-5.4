@@ -7,5 +7,5 @@
 / {
 	model = "Aerora Technology Co.Ltd. D64TR";
 	compatible = "qcom,kona-iot", "qcom,kona", "qcom,iot";
-	qcom,board-id = <0x01010b 3>;
+	qcom,board-id = <0x01010b 4>;
 };
