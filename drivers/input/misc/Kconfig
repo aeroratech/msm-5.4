@@ -914,4 +914,19 @@ config INPUT_STPMIC1_ONKEY
 	  To compile this driver as a module, choose M here: the
 	  module will be called stpmic1_onkey.
 
+config INPUT_BHI160B
+	tristate "BHI160B motion sensing sensor support"
+	depends on I2C
+	select INPUT_POLLDEV
+	help
+	  Say Y here if you have Bosch Sensortec's BHI160B motion sensing
+	  sensor hooked to an I2C bus.
+
+	  The small BHI160B integrates a 3-axis gyroscope, a 3-axis accelerometer
+	  and a programmable microcontroller with pre-installed fusion software
+	  and specific algorithms that enable always-on motion sensing.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called bhi160b.
+
 endif

@@ -145,6 +145,11 @@
 			};
 		};
 	};
+
+	bhi160b: bosch-sensortec,bhi160b@28  {
+		compatible = "bhi160b";
+		reg = <0x28>;
+	};
 };
 
 &vendor {
@@ -526,4 +531,11 @@
 
 &sdhc_2 {
 	cd-gpios = <&tlmm 77 GPIO_ACTIVE_HIGH>;
+};
+
+&usb0 {
+	/delete-property/ extcon;
+	dwc3@a600000 {
+		dr_mode = "peripheral";
+	};
 };
