@@ -631,7 +631,7 @@ config DEBUG_KMEMLEAK_DEFAULT_OFF
 
 config DEBUG_KMEMLEAK_AUTO_SCAN
 	bool "Enable kmemleak auto scan thread on boot up"
-	default y
+	default n
 	depends on DEBUG_KMEMLEAK
 	help
 	  Depending on the cpu, kmemleak scan may be cpu intensive and can
