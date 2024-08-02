@@ -80,7 +80,7 @@ config SND_PCM_OSS_PLUGINS
 
 config SND_PCM_TIMER
 	bool "PCM timer interface" if EXPERT
-	default y
+	default n
 	help
 	  If you disable this option, pcm timer will be unavailable, so
 	  those stubs that use pcm timer (e.g. dmix, dsnoop & co) may work
