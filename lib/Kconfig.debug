@@ -38,7 +38,7 @@ config PRINTK_CALLER
 config CONSOLE_LOGLEVEL_DEFAULT
 	int "Default console loglevel (1-15)"
 	range 1 15
-	default "7"
+	default "4"
 	help
 	  Default loglevel to determine what will be printed on the console.
 
