@@ -26,6 +26,8 @@
 
 #include "ite-it6161.h"
 
+//#define HDMITX_INPUT_INFO
+
 #ifndef DRM_COLOR_FORMAT_YCRCB444
 # define DRM_COLOR_FORMAT_YCRCB444	DRM_COLOR_FORMAT_YCBCR422
 #endif
@@ -511,6 +513,7 @@ static inline int it6161_hdmi_tx_change_bank(struct it6161 *it6161, int x)
 	return it6161_hdmi_tx_set_bits(it6161, 0x0F, 0x03, x & 0x03);
 }
 
+#ifdef HDMITX_INPUT_INFO
 static int it6161_cec_read(struct it6161 *it6161, u32 addr)
 {
 	struct device *dev = &it6161->i2c_mipi_rx->dev;
@@ -539,6 +542,7 @@ static int it6161_cec_write(struct it6161 *it6161, u32 addr, u32 val)
 
 	return 0;
 }
+#endif
 
 static inline struct it6161 *connector_to_it6161(struct drm_connector *c)
 {
@@ -1493,6 +1497,7 @@ static bool it6161_check_device_ready(struct it6161 *it6161)
 	return false;
 }
 
+#ifdef HDMITX_INPUT_INFO
 static u32 hdmi_tx_calc_rclk(struct it6161 *it6161)
 {
 	int i;
@@ -1537,6 +1542,12 @@ static u32 hdmi_tx_calc_rclk(struct it6161 *it6161)
 
 	return it6161->hdmi_tx_rclk;
 }
+#else
+static inline u32 hdmi_tx_calc_rclk(struct it6161 *it6161)
+{
+	return 0;
+}
+#endif
 
 u32 hdmi_tx_calc_pclk(struct it6161 *it6161)
 {
