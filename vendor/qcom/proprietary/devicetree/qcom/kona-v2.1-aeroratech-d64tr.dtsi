@@ -24,8 +24,8 @@
                 };
         };
 
-	lt6161_pins {
-		lt6161_intr: lt6161_intr {
+	it6161_pins {
+		it6161_intr: it6161_intr {
 			mux {
 				pins = "gpio1";
 				function = "gpio";
@@ -40,12 +40,8 @@
 	};
 };
 
-//// TODO:
-//// 1. Disable Display Support in XBL
-//// 2. Replace the name and default to dsi_to_hdmi_bridge_it6161 in XBL
 &mdss_mdp {
-	//// dsi_to_hdmi_bridge_it6161: qcom,mdss_dsi_to_hdmi_bridge_it6161 {
-	dsi_ili9806e_fwvga_video: qcom,mdss_dsi_ili9806e_fwvga_video {
+	mdss_dsi_ext_bridge_1080p: qcom,mdss_dsi_ext_bridge_1080p{
 		qcom,mdss-dsi-panel-name = "ext video mode dsi bridge";
 		qcom,mdss-dsi-panel-type = "dsi_video_mode";
 
@@ -121,29 +117,52 @@
 &qupv3_se13_i2c {
 	status = "ok";
 
-	lt6161: ite,it6161@6c {
+	it6161: ite,it6161@6c {
 		compatible = "ite,it6161";
 		reg = <0x6c>;
-		it6161-addr-hdmi-tx = <0x4C>;
-		it6161-addr-cec = <0x4E>;
 
 		interrupt-parent = <&tlmm>;
 		interrupts = <1 0>;
-		interrupt-names = "lt6161_irq";
+		interrupt-names = "it6161_irq";
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&lt6161_intr>;
+		pinctrl-0 = <&it6161_intr>;
+
+		it6161-addr-hdmi-tx = <0x4C>;
+		it6161-addr-cec = <0x4E>;
+		it6161-preferred-mode = "1920x1080";
+		it6161-non-pluggable;
+
+		it6161-customize-modes {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			it6161-customize-mode-id@0 {
+				mode-h-active = <1920>;
+				mode-h-front-porch = <88>;
+				mode-h-pulse-width = <44>;
+				mode-h-back-porch = <148>;
+				mode-h-active-high;
+				mode-v-active = <1080>;
+				mode-v-front-porch = <4>;
+				mode-v-pulse-width = <5>;
+				mode-v-back-porch = <36>;
+				mode-v-active-high;
+				mode-refresh-rate = <60>;
+				mode-clock-in-khz = <148500>;
+			};
+		};
 
 		ports {
 			#address-cells = <1>;
 			#size-cells = <0>;
 			port@0 {
 				reg = <0>;
-				lt6161_in: endpoint {
+				it6161_in: endpoint {
  					remote-endpoint = <&ext_dsi_0_out>;
 				};
 			};
 		};
+
 	};
 
 	bhi160b: bosch-sensortec,bhi160b@28  {
@@ -177,7 +196,7 @@
 			port@0 {
 				reg = <0>;
 				next_bridge: endpoint {
-					remote-endpoint = <&lt6161_in>;
+					remote-endpoint = <&it6161_in>;
 				};
 			};
 		};
@@ -473,7 +492,7 @@
 };
 
 &mdss_mdp {
-	connectors = <&sde_wb &smmu_sde_unsec &sde_dsi &sde_rscc>;
+	connectors = <&sde_wb &smmu_sde_unsec &sde_rscc &sde_dsi>;
 };
 
 &mdss_dsi_phy0 {
@@ -485,7 +504,7 @@
 };
 
 &sde_dsi {
-	qcom,dsi-default-panel = <&dsi_ili9806e_fwvga_video>;
+	qcom,dsi-default-panel = <&mdss_dsi_ext_bridge_1080p>;
 
 	ports {
 		#address-cells = <1>;

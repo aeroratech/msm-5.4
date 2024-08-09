@@ -322,6 +322,11 @@ struct it6161 {
 	u8 support_audio;
 	bool hdmi_mode;
 	u8 bAudioChannelEnable;
+
+	/* get display modes from device tree */
+	bool non_pluggable;
+	u32 num_of_modes;
+	struct list_head mode_list;
 };
 
 struct it6161 *it6161;
@@ -1116,30 +1121,64 @@ static struct edid *it6161_get_edid(struct it6161 *it6161)
 	return edid;
 }
 
+static void it6161_set_preferred_mode(struct drm_connector *connector)
+{
+	struct it6161 *it6161 = connector_to_it6161(connector);
+	struct drm_display_mode *mode;
+	const char *string;
+
+	/* use specified mode as preferred */
+	if (!of_property_read_string(it6161->i2c_mipi_rx->dev.of_node,
+			"it6161-preferred-mode", &string)) {
+		list_for_each_entry(mode, &connector->probed_modes, head) {
+			if (!strcmp(mode->name, string))
+				mode->type |= DRM_MODE_TYPE_PREFERRED;
+		}
+	}
+}
+
 static int it6161_get_modes(struct drm_connector *connector)
 {
 	struct it6161 *it6161 = connector_to_it6161(connector);
+	struct drm_display_mode *mode, *m;
 	int err, num_modes = 0;
 	struct edid *edid;
 	struct device *dev = &it6161->i2c_mipi_rx->dev;
 
 	mutex_lock(&it6161->mode_lock);
 
-	edid = it6161_get_edid(it6161);
-	if (!edid) {
-		DRM_DEV_ERROR(dev, "Failed to read EDID\n");
-		return 0;
+	if (it6161->non_pluggable) {
+		list_for_each_entry(mode, &it6161->mode_list, head) {
+			m = drm_mode_duplicate(connector->dev, mode);
+			if (!m) {
+				DRM_DEV_ERROR(dev, "failed to add hdmi mode %dx%d\n",
+					mode->hdisplay, mode->vdisplay);
+				break;
+			}
+			drm_mode_probed_add(connector, m);
+		}
+
+		num_modes = it6161->num_of_modes;
+	} else {
+		edid = it6161_get_edid(it6161);
+		if (!edid) {
+			DRM_DEV_ERROR(dev, "Failed to read EDID\n");
+			return 0;
+		}
+
+		err = drm_connector_update_edid_property(connector, edid);
+		if (err) {
+			DRM_DEV_ERROR(dev, "Failed to update EDID property: %d", err);
+			goto unlock;
+		}
+
+		num_modes = drm_add_edid_modes(connector, edid);
+
+		kfree(edid);
 	}
 
-	err = drm_connector_update_edid_property(connector, edid);
-	if (err) {
-		DRM_DEV_ERROR(dev, "Failed to update EDID property: %d", err);
-		goto unlock;
-	}
+	it6161_set_preferred_mode(connector);
 
-	num_modes = drm_add_edid_modes(connector, edid);
-
-	kfree(edid);
 unlock:
 	dev_info(dev, "edid mode number:%d", num_modes);
 	mutex_unlock(&it6161->mode_lock);
@@ -1158,16 +1197,20 @@ static enum drm_connector_status it6161_detect(struct drm_connector *connector, 
 	enum drm_connector_status status = connector_status_disconnected;
 	bool hpd;
 
-	hpd = hdmi_tx_get_sink_hpd(it6161);
-	if (hpd) {
-		it6161_variable_config(it6161);
+	if (force) {
+		hpd = hdmi_tx_get_sink_hpd(it6161);
+		if (hpd) {
+			it6161_variable_config(it6161);
+			status = connector_status_connected;
+		}
+		DRM_DEV_INFO(dev, "hpd:%s\n", hpd ? "high" : "low");
+
+		it6161_set_interrupts_active_level(HIGH);
+		it6161_mipi_rx_int_mask_enable(it6161);
+		it6161_hdmi_tx_int_mask_enable(it6161);
+	} else {
 		status = connector_status_connected;
 	}
-	DRM_DEV_INFO(dev, "hpd:%s\n", hpd ? "high" : "low");
-
-	it6161_set_interrupts_active_level(HIGH);
-	it6161_mipi_rx_int_mask_enable(it6161);
-	it6161_hdmi_tx_int_mask_enable(it6161);
 
 	return status;
 }
@@ -2881,6 +2924,158 @@ static const struct attribute *it6161_attrs[] = {
 	NULL,
 };
 
+static int it6161_parse_dt_modes(struct it6161 *it6161,
+				 struct device_node *np,
+				 struct list_head *head,
+				 u32 *num_of_modes)
+{
+	struct device *dev = &it6161->i2c_mipi_rx->dev;
+	struct drm_display_mode *mode;
+	u32 mode_count = 0;
+	struct device_node *node = NULL;
+	struct device_node *root_node = NULL;
+	u32 h_front_porch, h_pulse_width, h_back_porch;
+	u32 v_front_porch, v_pulse_width, v_back_porch;
+	bool h_active_high, v_active_high;
+	u32 flags = 0;
+	int rc = 0;
+
+	root_node = of_get_child_by_name(np, "it6161-customize-modes");
+	if (!root_node) {
+		root_node = of_parse_phandle(np, "it6161-customize-modes", 0);
+		if (!root_node) {
+			DRM_DEV_INFO(dev, "No entry present for customize-modes");
+			goto end;
+		}
+	}
+
+	for_each_child_of_node(root_node, node) {
+		rc = 0;
+		mode = kzalloc(sizeof(*mode), GFP_KERNEL);
+		if (!mode) {
+			DRM_DEV_ERROR(dev, "Out of memory");
+			rc =  -ENOMEM;
+			continue;
+		}
+
+		rc = of_property_read_u32(node, "mode-h-active",
+						&mode->hdisplay);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read h-active, rc=%d\n", rc);
+			goto fail;
+		}
+
+		rc = of_property_read_u32(node, "mode-h-front-porch",
+						&h_front_porch);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read h-front-porch, rc=%d\n", rc);
+			goto fail;
+		}
+
+		rc = of_property_read_u32(node, "mode-h-pulse-width",
+						&h_pulse_width);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read h-pulse-width, rc=%d\n", rc);
+			goto fail;
+		}
+
+		rc = of_property_read_u32(node, "mode-h-back-porch",
+						&h_back_porch);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read h-back-porch, rc=%d\n", rc);
+			goto fail;
+		}
+
+		h_active_high = of_property_read_bool(node, "mode-h-active-high");
+
+		rc = of_property_read_u32(node, "mode-v-active",
+						&mode->vdisplay);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read v-active, rc=%d\n", rc);
+			goto fail;
+		}
+
+		rc = of_property_read_u32(node, "mode-v-front-porch",
+						&v_front_porch);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read v-front-porch, rc=%d\n", rc);
+			goto fail;
+		}
+
+		rc = of_property_read_u32(node, "mode-v-pulse-width",
+						&v_pulse_width);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read v-pulse-width, rc=%d\n", rc);
+			goto fail;
+		}
+
+		rc = of_property_read_u32(node, "mode-v-back-porch",
+						&v_back_porch);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read v-back-porch, rc=%d\n", rc);
+			goto fail;
+		}
+
+		v_active_high = of_property_read_bool(node,
+						"mode-v-active-high");
+
+		rc = of_property_read_u32(node, "mode-refresh-rate",
+						&mode->vrefresh);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read refresh-rate, rc=%d\n", rc);
+			goto fail;
+		}
+
+		rc = of_property_read_u32(node, "mode-clock-in-khz",
+						&mode->clock);
+		if (rc) {
+			DRM_DEV_ERROR(dev, "failed to read clock, rc=%d\n", rc);
+			goto fail;
+		}
+
+		mode->hsync_start = mode->hdisplay + h_front_porch;
+		mode->hsync_end = mode->hsync_start + h_pulse_width;
+		mode->htotal = mode->hsync_end + h_back_porch;
+		mode->vsync_start = mode->vdisplay + v_front_porch;
+		mode->vsync_end = mode->vsync_start + v_pulse_width;
+		mode->vtotal = mode->vsync_end + v_back_porch;
+		if (h_active_high)
+			flags |= DRM_MODE_FLAG_PHSYNC;
+		else
+			flags |= DRM_MODE_FLAG_NHSYNC;
+		if (v_active_high)
+			flags |= DRM_MODE_FLAG_PVSYNC;
+		else
+			flags |= DRM_MODE_FLAG_NVSYNC;
+		mode->flags = flags;
+
+		if (!rc) {
+			mode_count++;
+			list_add_tail(&mode->head, head);
+		}
+
+		drm_mode_set_name(mode);
+
+		DRM_DEV_INFO(dev, "mode[%s] h[%d,%d,%d,%d] v[%d,%d,%d,%d] %d %x %dkHZ\n",
+			mode->name, mode->hdisplay, mode->hsync_start,
+			mode->hsync_end, mode->htotal, mode->vdisplay,
+			mode->vsync_start, mode->vsync_end, mode->vtotal,
+			mode->vrefresh, mode->flags, mode->clock);
+
+fail:
+		if (rc) {
+			kfree(mode);
+			continue;
+		}
+	}
+
+	if (num_of_modes)
+		*num_of_modes = mode_count;
+
+end:
+	return rc;
+}
+
 static int it6161_parse_dt(struct it6161 *it6161, struct device_node *np)
 {
 	struct device *dev = &it6161->i2c_mipi_rx->dev;
@@ -2918,6 +3113,14 @@ static int it6161_parse_dt(struct it6161 *it6161, struct device_node *np)
 		return -ENODEV;
 	}
 	of_node_put(it6161->host_node);
+
+	it6161->non_pluggable = of_property_read_bool(np, "it6161-non-pluggable");
+	DRM_DEV_INFO(dev, "it6161-non_pluggable = %d", it6161->non_pluggable);
+	if (it6161->non_pluggable) {
+		INIT_LIST_HEAD(&it6161->mode_list);
+		ret = it6161_parse_dt_modes(it6161, np,
+			&it6161->mode_list, &it6161->num_of_modes);
+	}
 
 	return 0;
 }
@@ -3022,10 +3225,18 @@ static void it6161_remove(struct i2c_client *i2c_mipi_rx)
 
 {
 	struct it6161 *it6161 = i2c_get_clientdata(i2c_mipi_rx);
+	struct drm_display_mode *mode, *n;
 
 	drm_connector_unregister(&it6161->connector);
 	drm_connector_cleanup(&it6161->connector);
 	drm_bridge_remove(&it6161->bridge);
+
+	if (it6161->non_pluggable) {
+		list_for_each_entry_safe(mode, n, &it6161->mode_list, head) {
+			list_del(&mode->head);
+			kfree(mode);
+		}
+	}
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6,1,0)
 	return 0;
