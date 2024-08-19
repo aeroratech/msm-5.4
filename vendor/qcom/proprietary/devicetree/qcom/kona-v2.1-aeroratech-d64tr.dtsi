@@ -537,6 +537,7 @@
 
 &usb0 {
 	/delete-property/ extcon;
+	qcom,disable-dev-mode-pm;
 	dwc3@a600000 {
 		dr_mode = "peripheral";
 	};

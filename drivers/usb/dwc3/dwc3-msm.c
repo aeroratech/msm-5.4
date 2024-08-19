@@ -54,6 +54,10 @@
 #include "debug.h"
 #include "xhci.h"
 
+//static bool usb_lpm_override;
+//module_param(usb_lpm_override, bool, S_IRUGO | S_IWUSR);
+//MODULE_PARM_DESC(usb_lpm_override, "Override no_suspend_resume with USB");
+
 #define SDP_CONNECTION_CHECK_TIME 10000 /* in ms */
 
 /* time out to wait for USB cable status notification (in ms)*/
@@ -3608,6 +3612,15 @@ static int dwc3_msm_suspend(struct dwc3_msm *mdwc, bool force_power_collapse,
 	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
 
 	mutex_lock(&mdwc->suspend_resume_mutex);
+
+#if 0
+	if (!usb_lpm_override) {
+		dev_dbg(mdwc->dev, "%s: no support for suspend\n", __func__);
+		mutex_unlock(&mdwc->suspend_resume_mutex);
+		return -EPERM;
+	}
+#endif
+
 	if (atomic_read(&dwc->in_lpm)) {
 		dev_dbg(mdwc->dev, "%s: Already suspended\n", __func__);
 		mutex_unlock(&mdwc->suspend_resume_mutex);
@@ -6438,23 +6451,26 @@ static void handle_state_idle(struct dwc3_msm *mdwc, bool *work)
 
 static void handle_state_peripheral(struct dwc3_msm *mdwc, bool *work)
 {
+	struct device_node *node = mdwc->dev->of_node;
 	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
 
 	if (!test_bit(B_SESS_VLD, &mdwc->inputs) ||
 			!test_bit(ID, &mdwc->inputs)) {
 		dev_dbg(mdwc->dev, "!id || !bsv\n");
-		mdwc->drd_state = DRD_STATE_IDLE;
-		cancel_delayed_work_sync(&mdwc->sdp_check);
-		dwc3_otg_start_peripheral(mdwc, 0);
-		/*
-		 * Decrement pm usage count upon cable disconnect
-		 * which was incremented upon cable connect in
-		 * DRD_STATE_IDLE state
-		 */
-		pm_runtime_put_sync_suspend(mdwc->dev);
-		dbg_event(0xFF, "!BSV psync",
-			atomic_read(&mdwc->dev->power.usage_count));
-		*work = true;
+		if (!of_property_read_bool(node, "qcom,disable-dev-mode-pm")) {
+			mdwc->drd_state = DRD_STATE_IDLE;
+			cancel_delayed_work_sync(&mdwc->sdp_check);
+			dwc3_otg_start_peripheral(mdwc, 0);
+			/*
+			 * Decrement pm usage count upon cable disconnect
+			 * which was incremented upon cable connect in
+			 * DRD_STATE_IDLE state
+			 */
+			pm_runtime_put_sync_suspend(mdwc->dev);
+			dbg_event(0xFF, "!BSV psync",
+					atomic_read(&mdwc->dev->power.usage_count));
+			*work = true;
+		}
 	} else if (test_bit(B_SUSPEND, &mdwc->inputs) &&
 		test_bit(B_SESS_VLD, &mdwc->inputs)) {
 		dev_dbg(mdwc->dev, "BPER bsv && susp\n");
