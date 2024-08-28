@@ -471,11 +471,11 @@
 };
 
 &sde_dp {
-	status = "okay";
+	status = "disabled";
 };
 
 &mdss_mdp {
-	connectors = <&sde_dp &smmu_sde_unsec &sde_rscc &sde_dsi>;
+	connectors = <&smmu_sde_unsec &sde_rscc &sde_dsi>;
 };
 
 &mdss_dsi_phy0 {
