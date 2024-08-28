@@ -513,7 +513,6 @@ static inline int it6161_hdmi_tx_change_bank(struct it6161 *it6161, int x)
 	return it6161_hdmi_tx_set_bits(it6161, 0x0F, 0x03, x & 0x03);
 }
 
-#ifdef HDMITX_INPUT_INFO
 static int it6161_cec_read(struct it6161 *it6161, u32 addr)
 {
 	struct device *dev = &it6161->i2c_mipi_rx->dev;
@@ -542,7 +541,6 @@ static int it6161_cec_write(struct it6161 *it6161, u32 addr, u32 val)
 
 	return 0;
 }
-#endif
 
 static inline struct it6161 *connector_to_it6161(struct drm_connector *c)
 {
@@ -811,8 +809,16 @@ static void mipi_rx_configuration(struct it6161 *it6161)
 #endif
 }
 
+static void it6161_variable_config(struct it6161 *it6161)
+{
+	it6161->hdmi_tx_mode = HDMI_TX_MODE;
+	it6161->mipi_rx_lane_count = MIPI_RX_LANE_COUNT;
+}
+
 static void mipi_rx_init(struct it6161 *it6161)
 {
+	if (it6161->non_pluggable)
+		it6161_variable_config(it6161);
 	mipi_rx_configuration(it6161);
 	/* Enable MPRX clock domain */
 	it6161_mipi_rx_set_bits(it6161, 0x05, 0x03, 0x00);
@@ -1103,12 +1109,6 @@ static void hdmi_tx_set_capability_from_edid_parse(struct it6161 *it6161, struct
 		DRM_DEV_INFO(dev, "support YUV422 output");
 }
 
-static void it6161_variable_config(struct it6161 *it6161)
-{
-	it6161->hdmi_tx_mode = HDMI_TX_MODE;
-	it6161->mipi_rx_lane_count = MIPI_RX_LANE_COUNT;
-}
-
 static struct edid *it6161_get_edid(struct it6161 *it6161)
 {
 	struct device *dev = &it6161->i2c_hdmi_tx->dev;
@@ -1201,17 +1201,13 @@ static enum drm_connector_status it6161_detect(struct drm_connector *connector, 
 	enum drm_connector_status status = connector_status_disconnected;
 	bool hpd;
 
-	if (force) {
+	if (force && !it6161->non_pluggable) {
 		hpd = hdmi_tx_get_sink_hpd(it6161);
 		if (hpd) {
 			it6161_variable_config(it6161);
 			status = connector_status_connected;
 		}
 		DRM_DEV_INFO(dev, "hpd:%s\n", hpd ? "high" : "low");
-
-		it6161_set_interrupts_active_level(HIGH);
-		it6161_mipi_rx_int_mask_enable(it6161);
-		it6161_hdmi_tx_int_mask_enable(it6161);
 	} else {
 		status = connector_status_connected;
 	}
@@ -1497,7 +1493,6 @@ static bool it6161_check_device_ready(struct it6161 *it6161)
 	return false;
 }
 
-#ifdef HDMITX_INPUT_INFO
 static u32 hdmi_tx_calc_rclk(struct it6161 *it6161)
 {
 	int i;
@@ -1542,12 +1537,6 @@ static u32 hdmi_tx_calc_rclk(struct it6161 *it6161)
 
 	return it6161->hdmi_tx_rclk;
 }
-#else
-static inline u32 hdmi_tx_calc_rclk(struct it6161 *it6161)
-{
-	return 0;
-}
-#endif
 
 u32 hdmi_tx_calc_pclk(struct it6161 *it6161)
 {
@@ -2763,7 +2752,8 @@ static void it6161_hdmi_tx_interrupt_reg08_process(struct it6161 *it6161, u8 reg
 	if (reg08 & B_TX_INT_VIDSTABLE) {
 		it6161_hdmi_tx_write(it6161, REG_TX_INT_STAT3, reg08);
 		if (hdmi_tx_get_video_state(it6161)) {
-			hdmi_tx_get_display_mode(it6161);
+			if (!it6161->non_pluggable)
+				hdmi_tx_get_display_mode(it6161);
 
 			hdmi_tx_set_output_process(it6161);
 			it6161_hdmi_tx_set_av_mute(it6161, FALSE);
