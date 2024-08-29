@@ -336,6 +336,24 @@
 			gpios = <&tlmm 15 0>;
 			linux,default-trigger = "heartbeat";
 		};
+
+		red_led {
+			label = "rgb-red";
+			gpios = <&tlmm 128 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+
+		blue_led {
+			label = "rgb-blue";
+			gpios = <&tlmm 129 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+
+		green_led {
+			label = "rgb-green";
+			gpios = <&tlmm 97 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
 	};
 };
 
@@ -540,5 +558,37 @@
 	qcom,disable-dev-mode-pm;
 	dwc3@a600000 {
 		dr_mode = "peripheral";
+	};
+};
+
+&cam_cci0 {
+	qcom,cam-sensor0 {
+		gpios = <&tlmm 94 0>,
+			<&tlmm 93 0>;
+		/delete-property/ gpio-standby;
+		gpio-req-tbl-num = <0 1>;
+		gpio-req-tbl-flags = <1 0>;
+		gpio-req-tbl-label = "CAMIF_MCLK0",
+				"CAM_RESET0";
+	};
+};
+
+&spkr_2_sd_n_sleep {
+	mux {
+		/delete-property/ pins;
+	};
+
+	config {
+		/delete-property/ pins;
+	};
+};
+
+&spkr_2_sd_n_active {
+	mux {
+		/delete-property/ pins;
+	};
+
+	config {
+		/delete-property/ pins;
 	};
 };
