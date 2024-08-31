@@ -2752,8 +2752,8 @@ static void it6161_hdmi_tx_interrupt_reg08_process(struct it6161 *it6161, u8 reg
 	if (reg08 & B_TX_INT_VIDSTABLE) {
 		it6161_hdmi_tx_write(it6161, REG_TX_INT_STAT3, reg08);
 		if (hdmi_tx_get_video_state(it6161)) {
-			if (!it6161->non_pluggable)
-				hdmi_tx_get_display_mode(it6161);
+			/* Compabilities optimization: do HDMI tx calibration */
+			hdmi_tx_get_display_mode(it6161);
 
 			hdmi_tx_set_output_process(it6161);
 			it6161_hdmi_tx_set_av_mute(it6161, FALSE);
