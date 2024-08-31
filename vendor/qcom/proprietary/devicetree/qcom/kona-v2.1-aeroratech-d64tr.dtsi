@@ -1,5 +1,5 @@
 #include "kona-qrd.dtsi"
-#include "kona-iot-openq-audio.dtsi"
+//#include "kona-iot-openq-audio.dtsi"
 #include "camera/kona-camera-sensor-openq.dtsi"
 
 / {
@@ -620,25 +620,5 @@
 
 	qcom,cam-sensor7 {
 		status = "disabled";
-	};
-};
-
-&spkr_2_sd_n_sleep {
-	mux {
-		/delete-property/ pins;
-	};
-
-	config {
-		/delete-property/ pins;
-	};
-};
-
-&spkr_2_sd_n_active {
-	mux {
-		/delete-property/ pins;
-	};
-
-	config {
-		/delete-property/ pins;
 	};
 };
