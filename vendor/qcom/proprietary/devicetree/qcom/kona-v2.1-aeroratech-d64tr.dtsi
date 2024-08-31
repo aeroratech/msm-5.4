@@ -571,6 +571,56 @@
 		gpio-req-tbl-label = "CAMIF_MCLK0",
 				"CAM_RESET0";
 	};
+
+	qcom,cam-sensor1 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor2 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor3 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor4 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor5 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor6 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor7 {
+		status = "disabled";
+	};
+};
+
+&cam_cci1 {
+	qcom,cam-sensor3 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor4 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor5 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor6 {
+		status = "disabled";
+	};
+
+	qcom,cam-sensor7 {
+		status = "disabled";
+	};
 };
 
 &spkr_2_sd_n_sleep {
