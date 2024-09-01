@@ -638,3 +638,7 @@
 &smb1390_slave_charger {
 	status = "disabled";
 };
+
+&pm8150b_charger {
+	status = "disabled";
+};
