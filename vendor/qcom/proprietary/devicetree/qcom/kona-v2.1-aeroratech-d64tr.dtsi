@@ -622,3 +622,23 @@
 		status = "disabled";
 	};
 };
+
+&smb1390 {
+	status = "disabled";
+};
+
+&smb1390_charger {
+	status = "disabled";
+};
+
+&smb1390_slave {
+	status = "disabled";
+};
+
+&smb1390_slave_charger {
+	status = "disabled";
+};
+
+&pm8150b_charger {
+	status = "disabled";
+};
