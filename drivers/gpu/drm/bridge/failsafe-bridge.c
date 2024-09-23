@@ -20,6 +20,8 @@
 
 struct failsafe_bridge {
 	struct drm_bridge	bridge;
+	struct drm_connector	connector;
+	struct drm_bridge 	*next_bridge;
 	struct platform_device	*device;
 };
 
@@ -29,12 +31,35 @@ drm_bridge_to_failsafe_bridge(struct drm_bridge *bridge)
 	return container_of(bridge, struct failsafe_bridge, bridge);
 }
 
+static enum drm_connector_status fsbridge_detect(struct drm_connector *connector, bool force)
+{
+	return connector_status_disconnected;
+}
+
+static const struct drm_connector_funcs failsafe_bridge_connector_funcs = {
+	.fill_modes = drm_helper_probe_single_connector_modes,
+	.detect = fsbridge_detect,
+	.destroy = drm_connector_cleanup,
+	.reset = drm_atomic_helper_connector_reset,
+	.atomic_duplicate_state = drm_atomic_helper_connector_duplicate_state,
+	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
+};
+
+static int fsbridge_get_modes(struct drm_connector *connector)
+{
+	return 0;
+}
+
+static const struct drm_connector_helper_funcs failsafe_bridge_connector_helper_funcs = {
+	.get_modes = fsbridge_get_modes,
+};
+
 static int failsafe_bridge_attach(struct drm_bridge *bridge)
 {
 	struct failsafe_bridge *fsbridge = drm_bridge_to_failsafe_bridge(bridge);
 	struct platform_device *platform_dev = fsbridge->device;
-	struct drm_bridge *next_bridge;
 	struct device_node *remote;
+	int ret;
 
 	if (!bridge->encoder) {
 		DRM_ERROR("Missing encoder\n");
@@ -43,16 +68,31 @@ static int failsafe_bridge_attach(struct drm_bridge *bridge)
 
 	remote = of_graph_get_remote_node(platform_dev->dev.of_node, 0, -1);
 	if (remote) {
-		next_bridge = of_drm_find_bridge(remote);
+		fsbridge->next_bridge = of_drm_find_bridge(remote);
 		of_node_put(remote);
 
-		if (next_bridge)
-			return drm_bridge_attach(bridge->encoder, next_bridge, bridge);
+		if (fsbridge->next_bridge)
+			return drm_bridge_attach(bridge->encoder, fsbridge->next_bridge, bridge);
+		else {
+			fsbridge->connector.polled = DRM_CONNECTOR_POLL_HPD;
+
+			ret = drm_connector_init(bridge->dev, &fsbridge->connector,
+					&failsafe_bridge_connector_funcs, DRM_MODE_CONNECTOR_HDMIA);
+			if (ret < 0) {
+				DRM_ERROR("Failed to initialize connector: %d", ret);
+				return ret;
+			}
+
+			drm_connector_helper_add(&fsbridge->connector, &failsafe_bridge_connector_helper_funcs);
+			drm_connector_attach_encoder(&fsbridge->connector, bridge->encoder);
+
+			return 0;
+		}
 	}
 
 	DRM_INFO("No bride found");
 
-	return 0;
+	return -ENODEV;
 }
 
 static const struct drm_bridge_funcs failsafe_bridge_funcs = {
@@ -83,6 +123,10 @@ static int failsafe_bridge_remove(struct platform_device *platform_dev)
 {
 	struct failsafe_bridge *fsbridge = platform_get_drvdata(platform_dev);
 
+	if (!fsbridge->next_bridge) {
+		drm_connector_unregister(&fsbridge->connector);
+		drm_connector_cleanup(&fsbridge->connector);
+	}
 	drm_bridge_remove(&fsbridge->bridge);
 
 	return 0;
