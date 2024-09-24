@@ -963,6 +963,26 @@ msm_get_images(struct device *dev,
 	return pos;
 }
 
+static ssize_t
+msm_get_product_string(struct device *dev,
+			struct device_attribute *attr,
+			char *buf)
+{
+	char *product_string = CONFIG_QCOM_SOCINFO_PRODUCT_STRING;
+
+	if (product_string[0] == '\0') {
+		uint32_t hw_type = socinfo_get_platform_type();
+
+		return snprintf(buf, PAGE_SIZE, "%s-%-.32s\n",
+				socinfo_get_id_string(), hw_platform[hw_type]);
+	}
+
+	return snprintf(buf, PAGE_SIZE, product_string);
+}
+
+static struct device_attribute product_string =
+	__ATTR(product_string, 0444, msm_get_product_string, NULL);
+
 static struct device_attribute image_version =
 	__ATTR(image_version, 0644,
 			msm_get_image_version, msm_set_image_version);
@@ -1053,6 +1073,7 @@ static void socinfo_populate_sysfs(struct qcom_socinfo *qcom_socinfo)
 		break;
 	}
 
+	msm_custom_socinfo_attrs[i++] = &product_string.attr;
 	msm_custom_socinfo_attrs[i++] = &image_version.attr;
 	msm_custom_socinfo_attrs[i++] = &image_variant.attr;
 	msm_custom_socinfo_attrs[i++] = &image_crm_version.attr;

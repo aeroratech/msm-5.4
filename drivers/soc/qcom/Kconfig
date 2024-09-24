@@ -601,6 +601,13 @@ config QCOM_SOCINFO
 	 Say yes here to support the Qualcomm socinfo driver, providing
 	 information about the SoC to user space.
 
+config QCOM_SOCINFO_PRODUCT_STRING
+	string "Qualcomm product string"
+	depends on QCOM_SOCINFO
+	default ""
+	help
+	  This option defines product string for use with application.
+
 config QCOM_SOCINFO_DT
 	tristate "Qualcomm Technologies, Inc. DT based socinfo driver"
 	select SOC_BUS
