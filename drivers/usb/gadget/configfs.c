@@ -118,7 +118,7 @@ static inline struct config_usb_cfg *to_config_usb_cfg(struct config_item *item)
 			group);
 }
 
-struct gadget_strings {
+struct gadget_language {
 	struct usb_gadget_strings stringtab_dev;
 	struct usb_string strings[USB_GADGET_FIRST_AVAIL_IDX];
 	char *manufacturer;
@@ -446,9 +446,9 @@ static struct configfs_attribute *gadget_root_attrs[] = {
 	NULL,
 };
 
-static inline struct gadget_strings *to_gadget_strings(struct config_item *item)
+static inline struct gadget_language *to_gadget_language(struct config_item *item)
 {
-	 return container_of(to_config_group(item), struct gadget_strings,
+	 return container_of(to_config_group(item), struct gadget_language,
 			 group);
 }
 
@@ -832,20 +832,20 @@ static const struct config_item_type config_desc_type = {
 	.ct_owner       = THIS_MODULE,
 };
 
-GS_STRINGS_RW(gadget_strings, manufacturer);
-GS_STRINGS_RW(gadget_strings, product);
-GS_STRINGS_RW(gadget_strings, serialnumber);
+GS_STRINGS_RW(gadget_language, manufacturer);
+GS_STRINGS_RW(gadget_language, product);
+GS_STRINGS_RW(gadget_language, serialnumber);
 
-static struct configfs_attribute *gadget_strings_langid_attrs[] = {
-	&gadget_strings_attr_manufacturer,
-	&gadget_strings_attr_product,
-	&gadget_strings_attr_serialnumber,
+static struct configfs_attribute *gadget_language_langid_attrs[] = {
+	&gadget_language_attr_manufacturer,
+	&gadget_language_attr_product,
+	&gadget_language_attr_serialnumber,
 	NULL,
 };
 
-static void gadget_strings_attr_release(struct config_item *item)
+static void gadget_language_attr_release(struct config_item *item)
 {
-	struct gadget_strings *gs = to_gadget_strings(item);
+	struct gadget_language *gs = to_gadget_language(item);
 
 	kfree(gs->manufacturer);
 	kfree(gs->product);
@@ -855,8 +855,8 @@ static void gadget_strings_attr_release(struct config_item *item)
 	kfree(gs);
 }
 
-USB_CONFIG_STRING_RW_OPS(gadget_strings);
-USB_CONFIG_STRINGS_LANG(gadget_strings, gadget_info);
+USB_CONFIG_STRING_RW_OPS(gadget_language);
+USB_CONFIG_STRINGS_LANG(gadget_language, gadget_info);
 
 static inline struct os_desc *to_os_desc(struct config_item *item)
 {
@@ -1406,7 +1406,7 @@ static int configfs_composite_bind(struct usb_gadget *gadget,
 
 	/* init all strings */
 	if (!list_empty(&gi->string_list)) {
-		struct gadget_strings *gs;
+		struct gadget_language *gs;
 
 		i = 0;
 		list_for_each_entry(gs, &gi->string_list, list) {
@@ -1863,7 +1863,7 @@ static struct config_group *gadgets_make(
 	configfs_add_default_group(&gi->configs_group, &gi->group);
 
 	config_group_init_type_name(&gi->strings_group, "strings",
-			&gadget_strings_strings_type);
+			&gadget_language_strings_type);
 	configfs_add_default_group(&gi->strings_group, &gi->group);
 
 	config_group_init_type_name(&gi->os_desc_group, "os_desc",
