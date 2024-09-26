@@ -12,7 +12,7 @@ Date:		Dec 2014
 KernelVersion:	4.0
 Description:	Control descriptors
 
-		All attributes read only:
+		All attributes read only except bSourceID:
 		bInterfaceNumber	- USB interface number for this
 					  streaming interface
 
