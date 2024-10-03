@@ -907,7 +907,14 @@ static struct usb_function_instance *uvc_alloc_inst(void)
 	 * able to allocate unique unit IDs to them. The IDs are 1-based, with
 	 * the CT, PU and OT above consuming the first 3.
 	 */
+#if 0
 	opts->last_unit_id		= 3;
+#else
+	/*
+	 * Reserve 4,5 and start with 6.
+	 */
+	opts->last_unit_id		= 5;
+#endif
 
 	/* Prepare fs control class descriptors for configfs-based gadgets */
 	ctl_cls = opts->uvc_fs_control_cls;
