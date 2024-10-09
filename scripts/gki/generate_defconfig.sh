@@ -73,6 +73,9 @@ fi
 FINAL_DEFCONFIG_BLEND=""
 
 case "$REQUIRED_DEFCONFIG" in
+	${PLATFORM_NAME}-qgki-vendor-perf_defconfig )
+		FINAL_DEFCONFIG_BLEND+=" $QCOM_VENDOR_PERF_FRAG"
+		;&	# Intentional fallthrough
 	${PLATFORM_NAME}-qgki-vendor-debug_defconfig )
 		FINAL_DEFCONFIG_BLEND+=" $QCOM_VENDOR_DEBUG_FRAG"
 		;&	# Intentional fallthrough
