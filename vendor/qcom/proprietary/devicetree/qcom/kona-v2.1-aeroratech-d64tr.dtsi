@@ -330,6 +330,12 @@
 		status = "ok";
 	};
 
+	power_always_on_enable {
+		compatible = "qcom,rb5_gpios_enable";
+		qcom,enable-gpio = <&tlmm 43 0>;
+		status = "ok";
+	};
+
 	leds {
 		compatible = "gpio-leds";
 		boot_status {
