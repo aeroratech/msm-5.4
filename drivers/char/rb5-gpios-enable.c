@@ -38,6 +38,7 @@ static int rb5_gpios_enable_probe(struct platform_device *pdev)
 	const char* dname = dev_name(&pdev->dev);
 	int minor;
 	u32 enable_gpio;
+	bool high_effective = false;
 
 	pr_debug("probe %s\n", dname);
 
@@ -60,6 +61,7 @@ static int rb5_gpios_enable_probe(struct platform_device *pdev)
 		return PTR_ERR(dev);
 	}
 
+	high_effective =  of_property_read_bool(np, "qcom,high-effective");
 	enable_gpio = of_get_named_gpio(np, "qcom,enable-gpio", 0);
 	if (!gpio_is_valid(enable_gpio)) {
 		pr_err("%s qcom,enable-gpio not specified\n", __func__);
@@ -70,7 +72,7 @@ static int rb5_gpios_enable_probe(struct platform_device *pdev)
 		goto error;
 	}
 	gpio_direction_output(enable_gpio, 1);
-	gpio_set_value(enable_gpio, 0);
+	gpio_set_value(enable_gpio, high_effective ? 1 : 0);
 	pr_debug("%s gpio:%d set to low\n", __func__);
 	return 0;
 
