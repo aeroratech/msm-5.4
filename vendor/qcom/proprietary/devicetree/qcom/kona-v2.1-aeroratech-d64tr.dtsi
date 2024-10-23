@@ -333,6 +333,7 @@
 	power_always_on_enable {
 		compatible = "qcom,rb5_gpios_enable";
 		qcom,enable-gpio = <&tlmm 43 0>;
+		qcom,high-effective;
 		status = "ok";
 	};
 
