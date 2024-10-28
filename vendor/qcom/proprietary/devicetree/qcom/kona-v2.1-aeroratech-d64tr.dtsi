@@ -38,6 +38,16 @@
 			};
 		};
 	};
+
+	cam_vcm_suspend_rear: cam_vcm_suspend_rear {
+		config {
+			pins = "gpio97";
+			/delete-property/ bias-pull-down; /* PULL DOWN */
+			bias-disable; /* No PULL */
+			drive-strength = <2>; /* 2 MA */
+			/delete-property/ output-low;
+		};
+	};
 };
 
 &mdss_mdp {
@@ -347,7 +357,7 @@
 		red_led {
 			label = "rgb-red";
 			gpios = <&tlmm 128 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "on";
 		};
 
 		blue_led {
@@ -359,7 +369,7 @@
 		green_led {
 			label = "rgb-green";
 			gpios = <&tlmm 97 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "on";
 		};
 	};
 };
