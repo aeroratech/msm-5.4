@@ -369,7 +369,7 @@
 		green_led {
 			label = "rgb-green";
 			gpios = <&tlmm 97 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
+			default-state = "off";
 		};
 	};
 };
