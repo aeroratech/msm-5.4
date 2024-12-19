@@ -38,7 +38,7 @@ config PRINTK_CALLER
 config CONSOLE_LOGLEVEL_DEFAULT
 	int "Default console loglevel (1-15)"
 	range 1 15
-	default "7"
+	default "4"
 	help
 	  Default loglevel to determine what will be printed on the console.
 
@@ -631,7 +631,7 @@ config DEBUG_KMEMLEAK_DEFAULT_OFF
 
 config DEBUG_KMEMLEAK_AUTO_SCAN
 	bool "Enable kmemleak auto scan thread on boot up"
-	default y
+	default n
 	depends on DEBUG_KMEMLEAK
 	help
 	  Depending on the cpu, kmemleak scan may be cpu intensive and can
