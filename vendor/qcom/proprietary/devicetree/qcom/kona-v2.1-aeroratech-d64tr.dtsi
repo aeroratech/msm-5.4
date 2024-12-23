@@ -43,9 +43,6 @@
 		config {
 			pins = "gpio97";
 			/delete-property/ bias-pull-down; /* PULL DOWN */
-			bias-disable; /* No PULL */
-			drive-strength = <2>; /* 2 MA */
-			/delete-property/ output-low;
 		};
 	};
 };
