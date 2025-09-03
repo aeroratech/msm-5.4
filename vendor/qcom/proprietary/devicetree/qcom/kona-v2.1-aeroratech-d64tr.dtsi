@@ -107,6 +107,7 @@
 //// Gimbal UART
 &qupv3_se18_2uart {
 	status = "okay";
+	qcom,auto-suspend-disable;
 };
 
 ////
