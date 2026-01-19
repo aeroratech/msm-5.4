@@ -591,7 +591,13 @@
 	};
 
 	qcom,cam-sensor1 {
-		status = "disabled";
+		gpios = <&tlmm 95 0>,
+			<&tlmm 92 0>;
+		/delete-property/ gpio-standby;
+		gpio-req-tbl-num = <0 1>;
+		gpio-req-tbl-flags = <1 0>;
+		gpio-req-tbl-label = "CAMIF_MCLK1",
+				"CAM_RESET1";
 	};
 
 	qcom,cam-sensor2 {
