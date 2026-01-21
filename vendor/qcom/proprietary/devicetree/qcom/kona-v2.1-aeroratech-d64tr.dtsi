@@ -373,6 +373,13 @@
 			default-state = "off";
 		};
 	};
+
+	cam_power_on_enable {
+		compatible = "qcom,rb5_gpios_enable";
+		qcom,enable-gpio = <&tlmm 121 0>;
+		qcom,high-effective;
+		status = "ok";
+	};
 };
 
 &usb0 {

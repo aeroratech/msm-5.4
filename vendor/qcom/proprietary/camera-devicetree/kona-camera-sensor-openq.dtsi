@@ -351,6 +351,8 @@
 		enable-active-high;
 		pinctrl-names = "default";
 		pinctrl-0 = <&camera_dvdd_en_default>;
+		regulator-boot-on;
+		regulator-always-on;
 	};
 };
 
