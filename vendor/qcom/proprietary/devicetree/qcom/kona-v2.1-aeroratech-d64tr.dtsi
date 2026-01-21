@@ -335,9 +335,10 @@
 		status = "ok";
 	};
 
-	it6161_enable {
+	cam1_vdd_enable {
 		compatible = "qcom,rb5_gpios_enable";
 		qcom,enable-gpio = <&tlmm 67 0>;
+		qcom,high-effective;
 		status = "ok";
 	};
 
@@ -652,6 +653,11 @@
 	qcom,cam-sensor7 {
 		status = "disabled";
 	};
+};
+
+&camera_ldo {
+	regulator-boot-on;
+	regulator-always-on;
 };
 
 &smb1390 {
