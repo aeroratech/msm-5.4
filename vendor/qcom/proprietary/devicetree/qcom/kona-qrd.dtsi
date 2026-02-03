@@ -88,56 +88,20 @@
 	status = "ok";
 };
 
-&tlmm {
-        key_user {
-                key_user_default: key_user_default {
-                        mux {
-                                pins = "gpio117";
-                                function = "gpio";
-                        };
-                        config {
-                                pins = "gpio117";
-                                drive-strength = <2>;
-                                bias-pull-up;
-                                input-enable;
-                        };
-                };
-        };
-};
-
 &soc {
 	gpio_keys {
 		compatible = "gpio-keys";
 		label = "gpio-keys";
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&key_vol_up_default &key_user_default>;
+		pinctrl-0 = <&key_vol_up_default>;
 
 		vol_up {
 			label = "volume_up";
 			gpios = <&pm8150_gpios 6 GPIO_ACTIVE_LOW>;
-			linux,input-type = <1>;
 			linux,code = <KEY_VOLUMEUP>;
 			gpio-key,wakeup;
-			debounce-interval = <15>;
-			linux,can-disable;
 		};
-                user {
-                        label = "user";
-                        gpios = <&tlmm 117 GPIO_ACTIVE_LOW>;
-                        linux,input-type = <1>;
-                        linux,code = <KEY_HOME>;
-                        gpio-key,wakeup;
-                        debounce-interval = <15>;
-                };
-	};
-
-	qcom,qbt_handler {
-		compatible = "qcom,qbt-handler";
-		qcom,ipc-gpio = <&tlmm 23 0>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&key_home_default>;
-		qcom,finger-detect-gpio = <&pm8150_gpios 1 0>;
 	};
 };
 
