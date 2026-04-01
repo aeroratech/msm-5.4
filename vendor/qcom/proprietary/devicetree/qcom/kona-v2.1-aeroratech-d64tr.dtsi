@@ -381,6 +381,12 @@
 		qcom,high-effective;
 		status = "ok";
 	};
+
+	laser_enable {
+		compatible = "qcom,rb5_gpios_enable";
+		qcom,enable-gpio = <&tlmm 113 0>;
+		status = "ok";
+	};
 };
 
 &usb0 {
