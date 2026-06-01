@@ -9,6 +9,7 @@
 #ifndef _UVC_GADGET_H_
 #define _UVC_GADGET_H_
 
+#include <linux/limits.h>
 #include <linux/list.h>
 #include <linux/mutex.h>
 #include <linux/spinlock.h>
@@ -66,7 +67,7 @@ extern unsigned int uvc_gadget_trace_param;
  */
 
 #define UVC_NUM_REQUESTS			64
-#define UVC_MAX_REQUEST_SIZE			64
+#define UVC_MAX_REQUEST_SIZE			U16_MAX
 #define UVC_MAX_EVENTS				4
 
 /* ------------------------------------------------------------------------
@@ -130,6 +131,7 @@ struct uvc_device {
 	struct usb_ep *control_ep;
 	struct usb_request *control_req;
 	void *control_buf;
+	unsigned int control_data_length;
 
 	unsigned int streaming_intf;
 

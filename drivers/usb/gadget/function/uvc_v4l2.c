@@ -12,6 +12,7 @@
 #include <linux/list.h>
 #include <linux/usb/g_uvc.h>
 #include <linux/videodev2.h>
+#include <linux/uaccess.h>
 #include <linux/vmalloc.h>
 #include <linux/wait.h>
 
@@ -41,9 +42,35 @@ uvc_send_response(struct uvc_device *uvc, struct uvc_request_data *data)
 	req->length = min_t(unsigned int, uvc->event_length, data->length);
 	req->zero = data->length < uvc->event_length;
 
-	memcpy(req->buf, data->data, req->length);
+	if (!uvc->event_setup_out) {
+		if (req->length > sizeof(data->data))
+			return -EINVAL;
+
+		memcpy(req->buf, data->data, req->length);
+	}
 
 	return usb_ep_queue(cdev->gadget->ep0, req, GFP_KERNEL);
+}
+
+static int
+uvc_get_request_data(struct uvc_device *uvc, struct uvc_request_data_ext *data)
+{
+	void __user *data_ptr = u64_to_user_ptr(data->data);
+	unsigned int length = uvc->control_data_length;
+
+	if (!data_ptr)
+		return -EINVAL;
+
+	if (data->length < length) {
+		data->length = length;
+		return -ENOBUFS;
+	}
+
+	if (length && copy_to_user(data_ptr, uvc->control_buf, length))
+		return -EFAULT;
+
+	data->length = length;
+	return 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -256,6 +283,9 @@ uvc_v4l2_ioctl_default(struct file *file, void *fh, bool valid_prio,
 	switch (cmd) {
 	case UVCIOC_SEND_RESPONSE:
 		return uvc_send_response(uvc, arg);
+
+	case UVCIOC_GET_REQUEST_DATA:
+		return uvc_get_request_data(uvc, arg);
 
 	default:
 		return -ENOIOCTLCMD;

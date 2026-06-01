@@ -27,6 +27,11 @@ struct uvc_request_data {
 	__u8 data[60];
 };
 
+struct uvc_request_data_ext {
+	__u32 length;
+	__u64 data;
+};
+
 struct uvc_event {
 	union {
 		enum usb_device_speed speed;
@@ -36,5 +41,6 @@ struct uvc_event {
 };
 
 #define UVCIOC_SEND_RESPONSE		_IOW('U', 1, struct uvc_request_data)
+#define UVCIOC_GET_REQUEST_DATA		_IOWR('U', 2, struct uvc_request_data_ext)
 
 #endif /* __LINUX_USB_G_UVC_H */

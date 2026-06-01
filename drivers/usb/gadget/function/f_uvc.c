@@ -213,7 +213,9 @@ uvc_function_ep0_complete(struct usb_ep *ep, struct usb_request *req)
 
 		memset(&v4l2_event, 0, sizeof(v4l2_event));
 		v4l2_event.type = UVC_EVENT_DATA;
-		uvc_event->data.length = min_t(unsigned int, req->actual,
+		uvc->control_data_length = min_t(unsigned int, req->actual,
+			UVC_MAX_REQUEST_SIZE);
+		uvc_event->data.length = min_t(unsigned int, uvc->control_data_length,
 			sizeof(uvc_event->data.data));
 		memcpy(&uvc_event->data.data, req->buf, uvc_event->data.length);
 		v4l2_event_queue(&uvc->vdev, &v4l2_event);
@@ -241,6 +243,8 @@ uvc_function_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
 	 */
 	uvc->event_setup_out = !(ctrl->bRequestType & USB_DIR_IN);
 	uvc->event_length = le16_to_cpu(ctrl->wLength);
+	if (uvc->event_setup_out)
+		uvc->control_data_length = 0;
 
 	memset(&v4l2_event, 0, sizeof(v4l2_event));
 	v4l2_event.type = UVC_EVENT_SETUP;
