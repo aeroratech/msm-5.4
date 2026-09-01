@@ -37,9 +37,9 @@ source "fs/jfs/Kconfig"
 source "fs/xfs/Kconfig"
 source "fs/gfs2/Kconfig"
 source "fs/ocfs2/Kconfig"
-source "fs/btrfs/Kconfig"
+#source "fs/btrfs/Kconfig"
 source "fs/nilfs2/Kconfig"
-source "fs/f2fs/Kconfig"
+#source "fs/f2fs/Kconfig"
 
 config FS_DAX
 	bool "Direct Access (DAX) support"
@@ -118,9 +118,9 @@ source "fs/notify/Kconfig"
 
 source "fs/quota/Kconfig"
 
-source "fs/autofs/Kconfig"
+#source "fs/autofs/Kconfig"
 source "fs/fuse/Kconfig"
-source "fs/overlayfs/Kconfig"
+#source "fs/overlayfs/Kconfig"
 source "fs/incfs/Kconfig"
 
 menu "Caches"
@@ -271,7 +271,7 @@ endif # MISC_FILESYSTEMS
 
 menuconfig NETWORK_FILESYSTEMS
 	bool "Network File Systems"
-	default y
+	default n
 	depends on NET
 	---help---
 	  Say Y here to get to see options for network filesystems and

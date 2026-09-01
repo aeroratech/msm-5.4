@@ -4,7 +4,7 @@ menu "USB HID support"
 
 config USB_HID
 	tristate "USB HID transport layer"
-	default y
+	default n
 	depends on USB && INPUT
 	select HID
 	---help---

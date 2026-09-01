@@ -8,7 +8,7 @@ menu "HID support"
 config HID
 	tristate "HID bus support"
 	depends on INPUT
-	default y
+	default n
 	---help---
 	  A human interface device (HID) is a type of computer device that
 	  interacts directly with and takes input from humans. The term "HID"
@@ -79,7 +79,7 @@ config UHID
 config HID_GENERIC
 	tristate "Generic HID driver"
 	depends on HID
-	default HID
+	default n
 	---help---
 	Support for generic devices on the HID bus. This includes most
 	keyboards and mice, joysticks, tablets and digitizers.

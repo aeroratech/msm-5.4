@@ -358,7 +358,7 @@ config FSL_ERRATUM_A008585
 
 config HISILICON_ERRATUM_161010101
 	bool "Workaround for Hisilicon Erratum 161010101"
-	default y
+	default n
 	select ARM_ARCH_TIMER_OOL_WORKAROUND
 	depends on ARM_ARCH_TIMER && ARM64
 	help
@@ -368,7 +368,7 @@ config HISILICON_ERRATUM_161010101
 
 config ARM64_ERRATUM_858921
 	bool "Workaround for Cortex-A73 erratum 858921"
-	default y
+	default n
 	select ARM_ARCH_TIMER_OOL_WORKAROUND
 	depends on ARM_ARCH_TIMER && ARM64
 	help

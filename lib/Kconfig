@@ -14,7 +14,7 @@ config RAID6_PQ
 config RAID6_PQ_BENCHMARK
 	bool "Automatically choose fastest RAID6 PQ functions"
 	depends on RAID6_PQ
-	default y
+	default n
 	help
 	  Benchmark all available RAID6 PQ functions on init and choose the
 	  fastest one.

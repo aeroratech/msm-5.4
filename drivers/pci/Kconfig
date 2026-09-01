@@ -57,7 +57,7 @@ config PCI_MSI_IRQ_DOMAIN
 	select GENERIC_MSI_IRQ_DOMAIN
 
 config PCI_QUIRKS
-	default y
+	default n
 	bool "Enable PCI quirk workarounds" if EXPERT
 	help
 	  This enables workarounds for various PCI chipset bugs/quirks.

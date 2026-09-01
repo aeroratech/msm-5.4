@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 config PAGE_EXTENSION
 	bool "Extend memmap on extra space for more information on page"
+	default n
 	---help---
 	  Extend memmap on extra space for more information on page. This
 	  could be used for debugging features that need to insert extra
